@@ -1,0 +1,3322 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "<img src=\"https://msendpointmgr.com/wp-content/uploads/2020/04/MSEndpoingMgrLogo.png\" height=\"150\">\n\n# Windows Update Report\n---\n\nWindows Client Patching Dashboard\n\nThe purpose of this dashboard is to give you full oversight of your Windows client device patching health. This includes;\n\n1. Patch compliance state over time\n2. Feature update state, including support \n3. Patch content source, and download figures per category\n4. Patching issues reported \n\n**Note:** Figures are updated on a 24 hour cycle."
+      },
+      "name": "text - 2"
+    },
+    {
+      "type": 11,
+      "content": {
+        "version": "LinkItem/1.0",
+        "style": "tabs",
+        "links": [
+          {
+            "id": "4f2673f9-8ffe-4321-9526-bf02f83d52f0",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Update Summary",
+            "subTarget": "Summary",
+            "style": "link"
+          },
+          {
+            "id": "8b1e9d6f-b3ea-4a07-9f2a-56078147c212",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Details by Device",
+            "subTarget": "ByDevice",
+            "style": "link"
+          },
+          {
+            "id": "f452fd96-ae28-4984-9e40-199e29399098",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Details by Update",
+            "subTarget": "ByUpdate",
+            "style": "link"
+          },
+          {
+            "id": "30a7afb4-1b86-4e8f-9a10-a8b660d65d37",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Update Issues",
+            "subTarget": "ByComplianceIssue",
+            "style": "link"
+          },
+          {
+            "id": "daa5d436-f3e9-4f27-afe5-a110acf8ac39",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Delivery Optimization",
+            "subTarget": "ByDeliveryOptimisation",
+            "style": "link"
+          },
+          {
+            "id": "51ef157d-c030-4d9b-bbec-e48d1cad3fce",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Feature Updates",
+            "subTarget": "ByFeatureUpdate",
+            "style": "link"
+          },
+          {
+            "id": "bdccd5df-a1fe-47ff-bba1-daa1926c3812",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Patching Alert",
+            "subTarget": "ByAlert",
+            "style": "link"
+          },
+          {
+            "id": "8a1ac3ec-7cdf-47f2-98bc-31ab051e8ccb",
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Windows 11 Readiness",
+            "subTarget": "ByWindows11",
+            "style": "link"
+          }
+        ]
+      },
+      "name": "links - 7"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSUpdateStatus \r\n| project TimeGenerated, Computer, OSSecurityUpdateStatus\r\n| summarize ComputerCount = dcount(Computer, 2) by TimeGenerated, OSSecurityUpdateStatus",
+              "size": 1,
+              "aggregation": 5,
+              "title": "Patching Trendline (Past 30 Days)",
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "areachart",
+              "chartSettings": {
+                "xAxis": "TimeGenerated",
+                "yAxis": [
+                  "ComputerCount"
+                ],
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Up-to-date",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Not Up-to-date",
+                    "color": "red"
+                  }
+                ]
+              }
+            },
+            "name": "query - 11"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSUpdateStatus\r\n| summarize arg_max(TimeGenerated, *) by ComputerID\r\n| extend ResultText = case(NeedAttentionStatus == 'Missing multiple security updates', \"Missing multiple security updates\", NeedAttentionStatus == 'Out of support OS Version', \"Out of support OS Version\",  \"NoNeedAttention\")\r\n| where ResultText != \"NoNeedAttention\" and isnotempty(Computer)\r\n| summarize dcount(ComputerID) by ResultText\r\n",
+              "size": 3,
+              "title": "Missing multiple security updates for past 30 days",
+              "noDataMessageStyle": 4,
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Missing multiple security updates",
+                    "color": "orange"
+                  },
+                  {
+                    "seriesName": "Out of support OS Version",
+                    "color": "red"
+                  }
+                ]
+              }
+            },
+            "customWidth": "40",
+            "showPin": false,
+            "name": "query - need attention"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSUpdateStatus\r\n| summarize arg_max(TimeGenerated, *) by ComputerID\r\n| extend ResultText = case(NeedAttentionStatus == 'Missing multiple security updates', \"Missing multiple security updates\", NeedAttentionStatus == 'Out of support OS Version', \"Out of support OS Version\",  \"NoNeedAttention\")\r\n| where ResultText != \"NoNeedAttention\" and isnotempty(Computer) \r\n| where OSQualityUpdateStatus <> \"Up-to-date\"\r\n| where OSSecurityUpdateStatus <> \"Up-to-date\"\r\n| project Computer, ResultText, LastScan\r\n\r\n\r\n",
+              "size": 0,
+              "title": "Missing multiple security updates for past 30 days",
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "table",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "ResultText",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "regex",
+                          "thresholdValue": "Missing",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "ResultText",
+                    "label": "Warning"
+                  }
+                ]
+              },
+              "sortBy": []
+            },
+            "customWidth": "60",
+            "name": "query - NEED ATTENTION!"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "UCUpdateAlert \r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| where AlertStatus == 'Active' \r\n| join kind=innerunique \r\n    (IntuneDevices\r\n    | summarize arg_max(TimeGenerated, *) by ReferenceId\r\n    )\r\n    on $left.AzureADDeviceId == $right.ReferenceId\r\n| extend DeviceUrl = strcat('https://endpoint.microsoft.com/#blade/Microsoft_Intune_Devices/DeviceSettingsBlade/overview/mdmDeviceId/', DeviceId) \r\n| extend DeviceName = DeviceName1   \r\n| project TimeGenerated, LastContact, DeviceName, CurrentOSVersion = OSVersion, TargetVersion, TargetBuild, Description, Recommendation, UpdateCategory, UpdateClassification , UserName, UserEmail, EncryptionStatusString, JoinType, Manufacturer, Model, SerialNumber, DeviceUrl, DeviceId, PrimaryUser",
+              "size": 3,
+              "title": "Update Alert for past 30 days",
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "TenantId",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "AlertId",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "AzureADTenantId",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "AzureADDeviceId",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "SCCMClientId",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "DeploymentId",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "DeviceName",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "linkColumn": "DeviceUrl",
+                      "linkTarget": "Url"
+                    }
+                  },
+                  {
+                    "columnMatch": "DeviceUrl",
+                    "formatter": 5
+                  }
+                ],
+                "rowLimit": 50
+              }
+            },
+            "name": "query - 9"
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "### Critial Security Spdates - By Age\r\n-------\r\n"
+            },
+            "name": "text - 10"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where UpdateReleasedDate  between (ago(30d) .. now() )\r\n| where isnotempty (Computer)\r\n| extend ReleaseName = strcat(OSVersion, ' - ', ReleaseName, ' - ', format_datetime(UpdateReleasedDate, 'yyyy/MM/dd'))\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName\r\n| summarize TotalRuns = count(), Success = countif(DeploymentStatus == 'Update completed'), Fails = countif(DeploymentStatus == 'Failed'), Unknown = countif(DeploymentStatus == 'Unknown'), ['In progress'] = countif(DeploymentStatus == 'In progress'), ['Progress stalled'] = countif(DeploymentStatus == 'Progress stalled') by ReleaseName // Summarize the total, successful and failed operations by name\r\n| extend SuccessRate = (Success * 100 / TotalRuns) // Calculate the percentage of succesful operations against the total\r\n| project ReleaseName, TotalRuns, [\"✔️Success\"] = Success, [\"❌Fails\"] = Fails, Unknown, ['In progress'], ['Progress stalled'], SuccessRate\r\n| order by ReleaseName",
+              "size": 3,
+              "title": "Updates 0-30 Days",
+              "showExportToExcel": true,
+              "exportToExcelOptions": "all",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "TotalRuns",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "redGreen"
+                    }
+                  },
+                  {
+                    "columnMatch": "SuccessRate",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "redGreen"
+                    },
+                    "numberFormat": {
+                      "unit": 1,
+                      "options": {
+                        "style": "decimal",
+                        "useGrouping": false
+                      }
+                    }
+                  }
+                ],
+                "sortBy": [
+                  {
+                    "itemKey": "ReleaseName",
+                    "sortOrder": 2
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "ReleaseName",
+                  "sortOrder": 2
+                }
+              ]
+            },
+            "name": "query - 5"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where UpdateReleasedDate  between (ago(60d) .. ago(31d) )\r\n| where isnotempty (Computer)\r\n| extend ReleaseName = strcat(OSVersion, ' - ', ReleaseName, ' - ', format_datetime(UpdateReleasedDate, 'yyyy/MM/dd'))\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName\r\n| summarize TotalRuns = count(), Success = countif(DeploymentStatus == 'Update completed'), Fails = countif(DeploymentStatus == 'Failed'), Unknown = countif(DeploymentStatus == 'Unknown'), ['In progress'] = countif(DeploymentStatus == 'In progress'), ['Progress stalled'] = countif(DeploymentStatus == 'Progress stalled') by ReleaseName // Summarize the total, successful and failed operations by name\r\n| extend SuccessRate = (Success * 100 / TotalRuns) // Calculate the percentage of succesful operations against the total\r\n| project ReleaseName, TotalRuns, [\"✔️Success\"] = Success, [\"❌Fails\"] = Fails, Unknown, ['In progress'], ['Progress stalled'], SuccessRate\r\n| order by ReleaseName",
+              "size": 3,
+              "title": "Updates 31-60 Days",
+              "showExportToExcel": true,
+              "exportToExcelOptions": "all",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "TotalRuns",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "redGreen"
+                    }
+                  },
+                  {
+                    "columnMatch": "SuccessRate",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "min": 0,
+                      "max": 100,
+                      "palette": "redGreen"
+                    },
+                    "numberFormat": {
+                      "unit": 1,
+                      "options": {
+                        "style": "decimal",
+                        "useGrouping": false
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "name": "query - 6"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where UpdateReleasedDate  between (ago(90d) .. ago(60d) )\r\n| where isnotempty (Computer)\r\n| extend ReleaseName = strcat(OSVersion, ' - ', ReleaseName, ' - ', format_datetime(UpdateReleasedDate, 'yyyy/MM/dd'))\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName\r\n| summarize TotalRuns = count(), Success = countif(DeploymentStatus == 'Update completed'), Fails = countif(DeploymentStatus == 'Failed'), Unknown = countif(DeploymentStatus == 'Unknown'), ['In progress'] = countif(DeploymentStatus == 'In progress'), ['Progress stalled'] = countif(DeploymentStatus == 'Progress stalled') by ReleaseName // Summarize the total, successful and failed operations by name\r\n| extend SuccessRate = (Success * 100 / TotalRuns) // Calculate the percentage of succesful operations against the total\r\n| project ReleaseName, TotalRuns, [\"✔️Success\"] = Success, [\"❌Fails\"] = Fails, Unknown, ['In progress'], ['Progress stalled'], SuccessRate\r\n| order by ReleaseName",
+              "size": 3,
+              "title": "Updates 61-90 Days",
+              "showExportToExcel": true,
+              "exportToExcelOptions": "all",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "TotalRuns",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "redGreen"
+                    }
+                  },
+                  {
+                    "columnMatch": "SuccessRate",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "redGreen"
+                    },
+                    "numberFormat": {
+                      "unit": 1,
+                      "options": {
+                        "style": "decimal"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "name": "query - 7"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where UpdateReleasedDate  between (ago(120d) .. ago(91d) )\r\n| where isnotempty (Computer)\r\n| extend ReleaseName = strcat(OSVersion, ' - ', ReleaseName, ' - ', format_datetime(UpdateReleasedDate, 'yyyy/MM/dd'))\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName\r\n| summarize TotalRuns = count(), Success = countif(DeploymentStatus == 'Update completed'), Fails = countif(DeploymentStatus == 'Failed'), Unknown = countif(DeploymentStatus == 'Unknown'), ['In progress'] = countif(DeploymentStatus == 'In progress'), ['Progress stalled'] = countif(DeploymentStatus == 'Progress stalled') by ReleaseName // Summarize the total, successful and failed operations by name\r\n| extend SuccessRate = (Success * 100 / TotalRuns) // Calculate the percentage of succesful operations against the total\r\n| project ReleaseName, TotalRuns, [\"✔️Success\"] = Success, [\"❌Fails\"] = Fails, Unknown, ['In progress'], ['Progress stalled'], SuccessRate\r\n| order by ReleaseName",
+              "size": 3,
+              "title": "Updates 91 - 120 Days",
+              "showExportToExcel": true,
+              "exportToExcelOptions": "all",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "query - 8"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where UpdateReleasedDate  between (ago(365d) .. ago(121d) )\r\n| where isnotempty (Computer)\r\n| extend ReleaseName = strcat(OSVersion, ' - ', ReleaseName, ' - ', format_datetime(UpdateReleasedDate, 'yyyy/MM/dd'))\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName\r\n| summarize TotalRuns = count(), Success = countif(DeploymentStatus == 'Update completed'), Fails = countif(DeploymentStatus == 'Failed'), Unknown = countif(DeploymentStatus == 'Unknown'), ['In progress'] = countif(DeploymentStatus == 'In progress'), ['Progress stalled'] = countif(DeploymentStatus == 'Progress stalled') by ReleaseName // Summarize the total, successful and failed operations by name\r\n| extend SuccessRate = (Success * 100 / TotalRuns) // Calculate the percentage of succesful operations against the total\r\n| project ReleaseName, TotalRuns, [\"✔️Success\"] = Success, [\"❌Fails\"] = Fails, Unknown, ['In progress'], ['Progress stalled'], SuccessRate\r\n| order by ReleaseName",
+              "size": 3,
+              "title": "Updates 120 Days +",
+              "showExportToExcel": true,
+              "exportToExcelOptions": "all",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "TotalRuns",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "redGreen"
+                    }
+                  },
+                  {
+                    "columnMatch": "SuccessRate",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "min": 0,
+                      "max": 100,
+                      "palette": "redGreen"
+                    },
+                    "numberFormat": {
+                      "unit": 1,
+                      "options": {
+                        "style": "decimal",
+                        "useGrouping": false
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "name": "query - 9"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Summary"
+      },
+      "name": "group - Summary"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "----\r\n## Quality Update Deployment details by Updates\r\n\r\nQuality updates deliver both security and non-security fixes to Windows 10. Quality updates include security updates, critical updates, servicing stack updates, and driver updates. They are typically released on the second Tuesday of each month, though they can be released at any time. The second-Tuesday releases are the ones that focus on security updates. Quality updates are cumulative, so installing the latest quality update is sufficient to get all the available fixes for a specific Windows 10 feature update, including any out-of-band security fixes and any servicing stack updates that might have been released previously.\r\n\r\nMore information can be found here - https://docs.microsoft.com/en-us/windows/deployment/update/get-started-updates-channels-tools "
+            },
+            "name": "text - 4"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "0da974ed-bf10-41e6-973a-b4bf7380b091",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "TimeRange",
+                  "type": 4,
+                  "isRequired": true,
+                  "value": {
+                    "durationMs": 2592000000
+                  },
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 1800000
+                      },
+                      {
+                        "durationMs": 3600000
+                      },
+                      {
+                        "durationMs": 14400000
+                      },
+                      {
+                        "durationMs": 43200000
+                      },
+                      {
+                        "durationMs": 86400000
+                      },
+                      {
+                        "durationMs": 172800000
+                      },
+                      {
+                        "durationMs": 259200000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2419200000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ],
+                    "allowCustom": true
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  }
+                },
+                {
+                  "id": "ffaba6e2-7793-4ad0-8d0e-37b7f96e32a5",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "ReleaseName",
+                  "label": "QualityUpdate",
+                  "type": 2,
+                  "isRequired": true,
+                  "multiSelect": true,
+                  "quote": "'",
+                  "delimiter": ",",
+                  "query": "WaaSDeploymentStatus\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate ) and isnotempty(Computer)\r\n//| summarize Count = count() by ReleaseName, UpdateReleasedDate\r\n| project Value = ReleaseName, Label = strcat(OSVersion, ' - ', ReleaseName, ' - ',  format_datetime(UpdateReleasedDate,'yyyy/MM/dd'))\r\n| distinct Value, Label\r\n| sort by Label desc",
+                  "value": [
+                    "value::all"
+                  ],
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::all"
+                    ],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 5 - Copy"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where ReleaseName in ({ReleaseName}) or '*' in ({ReleaseName})\r\n| project TimeGenerated, ReleaseName, DetailedStatus, Computer\r\n| summarize count () by TimeGenerated, ReleaseName, DetailedStatus\r\n",
+              "size": 0,
+              "aggregation": 3,
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "areachart",
+              "gridSettings": {
+                "sortBy": [
+                  {
+                    "itemKey": "count_",
+                    "sortOrder": 2
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "count_",
+                  "sortOrder": 2
+                }
+              ],
+              "chartSettings": {
+                "xAxis": "TimeGenerated",
+                "yAxis": [
+                  "count_"
+                ],
+                "group": "DetailedStatus",
+                "createOtherGroup": null,
+                "showLegend": true,
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Unknown",
+                    "color": "gray"
+                  },
+                  {
+                    "seriesName": "UpdateSuccessful",
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "name": "query - 12"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let data = WaaSDeploymentStatus\r\n    | extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n    | summarize arg_max(TimeGenerated, *) by ComputerID, ReleaseName\r\n    | where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n    | where ReleaseName in ({ReleaseName}) or '*' in ({ReleaseName})\r\n    | project TimeGenerated, ReleaseName, DetailedStatus, Computer;\r\ndata\r\n| summarize DeviceCount = count () by DetailedStatus\r\n| union (data\r\n    | summarize DeviceCount = count()\r\n    | extend DetailedStatus = 'Total'\r\n) \r\n| order by DeviceCount desc\r\n| extend butonText = 'deployment'",
+              "size": 1,
+              "showAnalytics": true,
+              "title": "Deployment overview",
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showRefreshButton": true,
+              "exportFieldName": "DetailedStatus",
+              "exportParameterName": "DetailedStatus",
+              "exportDefaultValue": "Total",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "tiles",
+              "tileSettings": {
+                "titleContent": {
+                  "columnMatch": "DetailedStatus",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "DeviceCount",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "coldHot"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "style": "decimal",
+                      "maximumFractionDigits": 2,
+                      "maximumSignificantDigits": 3
+                    }
+                  }
+                },
+                "secondaryContent": {
+                  "columnMatch": "butonText",
+                  "formatter": 1
+                },
+                "showBorder": false
+              },
+              "graphSettings": {
+                "type": 0,
+                "topContent": {
+                  "columnMatch": "resultName",
+                  "formatter": 1
+                },
+                "centerContent": {
+                  "columnMatch": "Count",
+                  "formatter": 1,
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              },
+              "chartSettings": {
+                "group": "resultName",
+                "createOtherGroup": null,
+                "showLegend": true,
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Success",
+                    "label": "Success",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Unknown",
+                    "label": "Unknown",
+                    "color": "gray"
+                  },
+                  {
+                    "seriesName": "Failure",
+                    "label": "Failure",
+                    "color": "redBright"
+                  },
+                  {
+                    "seriesName": "In progress",
+                    "label": "In progress",
+                    "color": "yellow"
+                  }
+                ]
+              }
+            },
+            "name": "query - 3",
+            "styleSettings": {
+              "margin": "0px",
+              "padding": "0px"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| where ReleaseName in ({ReleaseName}) or '*' in ({ReleaseName})\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName\r\n| where DetailedStatus == \"{DetailedStatus}\" or \"{DetailedStatus}\" == \"Total\"\r\n| project  TimeGenerated, LastScan, Computer, DeploymentStatus, DetailedStatus, DeploymentError, CurrentOSVersion = OSVersion, CurrentOSBuild = OSBuild, ReleaseName, UpdateReleasedDate, DeferralDays, PauseState, ExpectedInstallDate\r\n| sort by UpdateReleasedDate, Computer desc",
+              "size": 0,
+              "showAnalytics": true,
+              "title": "DetailedStatus - {DetailedStatus}",
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showRefreshButton": true,
+              "exportedParameters": [
+                {
+                  "fieldName": "Computer",
+                  "parameterName": "DeviceName",
+                  "defaultValue": "(none)"
+                },
+                {
+                  "parameterType": 1
+                }
+              ],
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "table",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "DeploymentStatus",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Update completed",
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Failed",
+                          "representation": "failed",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Unknown",
+                          "representation": "unknown",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "In progress",
+                          "representation": "pending",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Progress stalled",
+                          "representation": "stopped",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "question",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "DetailedStatus",
+                    "formatter": 1
+                  },
+                  {
+                    "columnMatch": "Deployment Status",
+                    "formatter": 7,
+                    "formatOptions": {
+                      "linkTarget": "GenericDetails",
+                      "linkIsContextBlade": true
+                    }
+                  }
+                ],
+                "filter": true,
+                "sortBy": [
+                  {
+                    "itemKey": "Computer",
+                    "sortOrder": 1
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "Computer",
+                  "sortOrder": 1
+                }
+              ]
+            },
+            "name": "query - 4"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where ReleaseName in ({ReleaseName}) or '*' in ({ReleaseName})\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| extend ReleaseName = strcat(OSVersion, ' - ', ReleaseName, ' - ', format_datetime(UpdateReleasedDate, 'yyyy/MM/dd'))\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName\r\n| summarize TotalRuns = count(), Success = countif(DeploymentStatus == 'Update completed'), Fails = countif(DeploymentStatus == 'Failed'), Unknown = countif(DeploymentStatus == 'Unknown'), ['In progress'] = countif(DeploymentStatus == 'In progress'), ['Progress stalled'] = countif(DeploymentStatus == 'Progress stalled') by ReleaseName // Summarize the total, successful and failed operations by name\r\n| extend SuccessRate = (Success * 100 / TotalRuns) // Calculate the percentage of succesful operations against the total\r\n| project ReleaseName, TotalRuns, [\"✔️Success\"] = Success, [\"❌Fails\"] = Fails, Unknown, ['In progress'], ['Progress stalled'], SuccessRate\r\n| order by ReleaseName\r\n\r\n",
+              "size": 3,
+              "title": "All Deployment details",
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "TotalRuns",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "blue"
+                    }
+                  },
+                  {
+                    "columnMatch": "Success",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "green"
+                    }
+                  },
+                  {
+                    "columnMatch": "Fails",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "red"
+                    }
+                  },
+                  {
+                    "columnMatch": "SuccessRate",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "min": 0,
+                      "max": 80,
+                      "palette": "redGreen"
+                    },
+                    "numberFormat": {
+                      "unit": 1,
+                      "options": {
+                        "style": "decimal",
+                        "useGrouping": false
+                      }
+                    }
+                  }
+                ],
+                "sortBy": [
+                  {
+                    "itemKey": "ReleaseName",
+                    "sortOrder": 2
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "ReleaseName",
+                  "sortOrder": 2
+                }
+              ]
+            },
+            "name": "Deployment details"
+          }
+        ],
+        "exportParameters": true
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ByUpdate"
+      },
+      "name": "Group - ByUpdates"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "----\r\n## Quality Update Deployment details by Device\r\n\r\nQuality updates deliver both security and non-security fixes to Windows 10. Quality updates include security updates, critical updates, servicing stack updates, and driver updates. They are typically released on the second Tuesday of each month, though they can be released at any time. The second-Tuesday releases are the ones that focus on security updates. Quality updates are cumulative, so installing the latest quality update is sufficient to get all the available fixes for a specific Windows 10 feature update, including any out-of-band security fixes and any servicing stack updates that might have been released previously.\r\n\r\nMore information can be found here - https://docs.microsoft.com/en-us/windows/deployment/update/get-started-updates-channels-tools "
+            },
+            "name": "text - 4"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "0da974ed-bf10-41e6-973a-b4bf7380b091",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "TimeRange",
+                  "type": 4,
+                  "isRequired": true,
+                  "value": {
+                    "durationMs": 2592000000
+                  },
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 1800000
+                      },
+                      {
+                        "durationMs": 3600000
+                      },
+                      {
+                        "durationMs": 14400000
+                      },
+                      {
+                        "durationMs": 43200000
+                      },
+                      {
+                        "durationMs": 86400000
+                      },
+                      {
+                        "durationMs": 172800000
+                      },
+                      {
+                        "durationMs": 259200000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2419200000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ],
+                    "allowCustom": true
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  }
+                },
+                {
+                  "id": "ffaba6e2-7793-4ad0-8d0e-37b7f96e32a5",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "DeviceName",
+                  "label": "Device Name",
+                  "type": 1,
+                  "value": "",
+                  "timeContext": {
+                    "durationMs": 2592000000
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "defaultValue": "value::1"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 5 - Copy"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let data = WaaSDeploymentStatus\r\n    | extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n    | summarize arg_max(TimeGenerated, *) by ComputerID, ReleaseName, DetailedStatus\r\n    | where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n    | where \"{DeviceName:escape}\" == \"*\" or Computer contains \"{DeviceName:escape}\" or \"{DeviceName:escape}\" == \"All devices\"\r\n    | project TimeGenerated, ReleaseName, DetailedStatus, Computer;\r\ndata\r\n| summarize DeviceCount = count () by DetailedStatus\r\n| union (data\r\n    | summarize DeviceCount = count()\r\n    | extend DetailedStatus = 'Total'\r\n) \r\n| order by DeviceCount desc\r\n| extend butonText = 'deployment'",
+              "size": 1,
+              "showAnalytics": true,
+              "title": "Deployment overview",
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showRefreshButton": true,
+              "exportFieldName": "DetailedStatus",
+              "exportParameterName": "DetailedStatus",
+              "exportDefaultValue": "Total",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "tiles",
+              "tileSettings": {
+                "titleContent": {
+                  "columnMatch": "DetailedStatus",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "DeviceCount",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "coldHot"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "style": "decimal",
+                      "maximumFractionDigits": 2,
+                      "maximumSignificantDigits": 3
+                    }
+                  }
+                },
+                "secondaryContent": {
+                  "columnMatch": "butonText",
+                  "formatter": 1
+                },
+                "showBorder": false
+              },
+              "graphSettings": {
+                "type": 0,
+                "topContent": {
+                  "columnMatch": "resultName",
+                  "formatter": 1
+                },
+                "centerContent": {
+                  "columnMatch": "Count",
+                  "formatter": 1,
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              },
+              "chartSettings": {
+                "group": "resultName",
+                "createOtherGroup": null,
+                "showLegend": true,
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Success",
+                    "label": "Success",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Unknown",
+                    "label": "Unknown",
+                    "color": "gray"
+                  },
+                  {
+                    "seriesName": "Failure",
+                    "label": "Failure",
+                    "color": "redBright"
+                  },
+                  {
+                    "seriesName": "In progress",
+                    "label": "In progress",
+                    "color": "yellow"
+                  }
+                ]
+              }
+            },
+            "name": "query - 3",
+            "styleSettings": {
+              "margin": "0px",
+              "padding": "0px"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| where \"{DeviceName:escape}\" == \"*\" or Computer contains \"{DeviceName:escape}\" or \"{DeviceName:escape}\" == \"All devices\"\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName, DetailedStatus\r\n| where DetailedStatus == \"{DetailedStatus}\" or \"{DetailedStatus}\" == \"Total\"\r\n| project  TimeGenerated, LastScan, Computer, DeploymentStatus, DetailedStatus, DeploymentError, CurrentOSVersion = OSVersion, CurrentOSBuild = OSBuild, ReleaseName, UpdateReleasedDate, DeferralDays, PauseState, ExpectedInstallDate\r\n| sort by UpdateReleasedDate, Computer desc",
+              "size": 0,
+              "showAnalytics": true,
+              "title": "DetailedStatus - {DetailedStatus}",
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showRefreshButton": true,
+              "exportedParameters": [
+                {
+                  "fieldName": "Computer",
+                  "parameterName": "DeviceName_s",
+                  "defaultValue": "(none)"
+                },
+                {
+                  "fieldName": "ReleaseName",
+                  "parameterName": "ReleaseName_s",
+                  "parameterType": 1
+                },
+                {
+                  "fieldName": "DeploymentStatus",
+                  "parameterName": "DeploymentStatus_s",
+                  "parameterType": 1
+                }
+              ],
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "table",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "DeploymentStatus",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Update completed",
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Failed",
+                          "representation": "failed",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Unknown",
+                          "representation": "unknown",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "In progress",
+                          "representation": "pending",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Progress stalled",
+                          "representation": "stopped",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "question",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "DetailedStatus",
+                    "formatter": 1
+                  },
+                  {
+                    "columnMatch": "PauseState",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Paused",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    },
+                    "numberFormat": {
+                      "unit": 0,
+                      "options": {
+                        "style": "decimal"
+                      }
+                    }
+                  },
+                  {
+                    "columnMatch": "Deployment Status",
+                    "formatter": 7,
+                    "formatOptions": {
+                      "linkTarget": "GenericDetails",
+                      "linkIsContextBlade": true
+                    }
+                  }
+                ],
+                "filter": true,
+                "sortBy": [
+                  {
+                    "itemKey": "Computer",
+                    "sortOrder": 1
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "Computer",
+                  "sortOrder": 1
+                }
+              ]
+            },
+            "name": "query - 4"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where \"{DeviceName:escape}\" == \"*\" or Computer contains \"{DeviceName:escape}\" or \"{DeviceName:escape}\" == \"All devices\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| extend ReleaseName = strcat(OSVersion, ' - ', ReleaseName, ' - ', format_datetime(UpdateReleasedDate, 'yyyy/MM/dd'))\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName, DetailedStatus\r\n| summarize TotalRuns = count(), Success = countif(DeploymentStatus == 'Update completed'), Fails = countif(DeploymentStatus == 'Failed'), Unknown = countif(DeploymentStatus == 'Unknown'), ['In progress'] = countif(DeploymentStatus == 'In progress'), ['Progress stalled'] = countif(DeploymentStatus == 'Progress stalled') by ReleaseName // Summarize the total, successful and failed operations by name\r\n| extend SuccessRate = (Success * 100 / TotalRuns) // Calculate the percentage of succesful operations against the total\r\n| project ReleaseName, TotalRuns, [\"✔️Success\"] = Success, [\"❌Fails\"] = Fails, Unknown, ['In progress'], ['Progress stalled'], SuccessRate\r\n| order by ReleaseName\r\n\r\n",
+              "size": 3,
+              "title": "All Deployment details",
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "TotalRuns",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "blue"
+                    }
+                  },
+                  {
+                    "columnMatch": "Success",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "green"
+                    }
+                  },
+                  {
+                    "columnMatch": "Fails",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "red"
+                    }
+                  },
+                  {
+                    "columnMatch": "SuccessRate",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "min": 0,
+                      "max": 80,
+                      "palette": "redGreen"
+                    },
+                    "numberFormat": {
+                      "unit": 1,
+                      "options": {
+                        "style": "decimal",
+                        "useGrouping": false
+                      }
+                    }
+                  }
+                ],
+                "sortBy": [
+                  {
+                    "itemKey": "ReleaseName",
+                    "sortOrder": 2
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "ReleaseName",
+                  "sortOrder": 2
+                }
+              ]
+            },
+            "name": "Deployment details"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ByDevice"
+      },
+      "name": "Group - ByDevice"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "# Feature Updates\r\n-----\r\n\r\nFeature updates for Windows 10 are released twice a year, around March and September, via the Semi-Annual Channel. They will be serviced with monthly quality updates for 18 or 30 months from the date of the release, depending on the lifecycle policy.\r\n\r\nMore information can be found here - https://docs.microsoft.com/en-us/windows/release-health/release-information",
+              "style": "upsell"
+            },
+            "name": "text - 7"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "0d8c0f83-81cc-495a-98fc-4660d306a956",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "TimeRange",
+                  "type": 4,
+                  "value": {
+                    "durationMs": 172800000
+                  },
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 172800000
+                      },
+                      {
+                        "durationMs": 259200000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ],
+                    "allowCustom": true
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  }
+                },
+                {
+                  "id": "30c46fa1-fbaf-4dc8-9f55-85545afa376a",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "ReleaseName",
+                  "type": 2,
+                  "isRequired": true,
+                  "multiSelect": true,
+                  "quote": "'",
+                  "delimiter": ",",
+                  "query": "WaaSUpdateStatus\r\n| distinct OSVersion\r\n| sort by OSVersion desc",
+                  "value": [
+                    "value::all"
+                  ],
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::all"
+                    ],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "defaultValue": "value::all",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 6"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSUpdateStatus\r\n| where isnotempty(Computer)\r\n| where OSVersion in ({ReleaseName}) or '*' in ({ReleaseName})\r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| summarize dcount(ComputerID) by OSFeatureUpdateStatus",
+              "size": 3,
+              "title": "Windows Supported Build Count",
+              "timeContext": {
+                "durationMs": 172800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Not Up-to-date",
+                    "label": "Supported Build",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Out of Support",
+                    "label": "Unsupported Build",
+                    "color": "red"
+                  },
+                  {
+                    "seriesName": "Up-to-date",
+                    "label": "Latest Build",
+                    "color": "blue"
+                  }
+                ],
+                "ySettings": {
+                  "numberFormatSettings": {
+                    "unit": 0,
+                    "options": {
+                      "style": "decimal",
+                      "useGrouping": true
+                    }
+                  }
+                }
+              }
+            },
+            "customWidth": "50",
+            "name": "query - 1",
+            "styleSettings": {
+              "maxWidth": "50%"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSUpdateStatus\r\n| where isnotempty(Computer)\r\n| where OSVersion in ({ReleaseName}) or '*' in ({ReleaseName})\r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| summarize dcount(ComputerID) by OSVersion",
+              "size": 3,
+              "title": "Windows Build Versions",
+              "timeContext": {
+                "durationMs": 172800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "tileSettings": {
+                "showBorder": false,
+                "titleContent": {
+                  "columnMatch": "OSVersion",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "dcount_ComputerID",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "auto"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              },
+              "graphSettings": {
+                "type": 0,
+                "topContent": {
+                  "columnMatch": "OSVersion",
+                  "formatter": 1
+                },
+                "centerContent": {
+                  "columnMatch": "dcount_ComputerID",
+                  "formatter": 1,
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              },
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "1909",
+                    "label": "Windows 10 1909"
+                  },
+                  {
+                    "seriesName": "1903",
+                    "label": "Windows 10 1903"
+                  },
+                  {
+                    "seriesName": "1809",
+                    "label": "Windows 10 1809"
+                  },
+                  {
+                    "seriesName": "20H2",
+                    "label": "Windows 10 20H2"
+                  },
+                  {
+                    "seriesName": "1803",
+                    "label": "Windows 10 1803"
+                  },
+                  {
+                    "seriesName": "2004",
+                    "label": "Windows 10 2004"
+                  },
+                  {
+                    "seriesName": "1709",
+                    "label": "Windows 10 1709"
+                  },
+                  {
+                    "seriesName": "21H1",
+                    "label": "Windows 10 21H1"
+                  }
+                ],
+                "ySettings": {
+                  "numberFormatSettings": {
+                    "unit": 0,
+                    "options": {
+                      "style": "decimal",
+                      "useGrouping": true
+                    }
+                  }
+                }
+              },
+              "mapSettings": {
+                "locInfo": "LatLong",
+                "sizeSettings": "dcount_ComputerID",
+                "sizeAggregation": "Sum",
+                "legendMetric": "dcount_ComputerID",
+                "legendAggregation": "Sum",
+                "itemColorSettings": {
+                  "type": "heatmap",
+                  "colorAggregation": "Sum",
+                  "nodeColorField": "dcount_ComputerID",
+                  "heatmapPalette": "greenRed"
+                }
+              }
+            },
+            "customWidth": "50",
+            "name": "query - 0",
+            "styleSettings": {
+              "maxWidth": "50%"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let data = WaaSDeploymentStatus\r\n    | extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n    | summarize arg_max(TimeGenerated, *) by ComputerID, ReleaseName\r\n    | where UpdateCategory == \"Feature\"\r\n    | where ReleaseName in ({ReleaseName}) or '*' in ({ReleaseName})\r\n    | project TimeGenerated, ReleaseName, DetailedStatus, Computer;\r\ndata\r\n| summarize DeviceCount = count () by DetailedStatus\r\n| union (data\r\n    | summarize DeviceCount = count()\r\n    | extend DetailedStatus = 'Total'\r\n) \r\n| order by DeviceCount desc\r\n| extend butonText = 'deployments'",
+              "size": 3,
+              "timeContext": {
+                "durationMs": 172800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "exportFieldName": "DetailedStatus",
+              "exportParameterName": "DetailedStatus",
+              "exportDefaultValue": "Total",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "tiles",
+              "tileSettings": {
+                "titleContent": {
+                  "columnMatch": "DetailedStatus",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "DeviceCount",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "auto"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                },
+                "secondaryContent": {
+                  "columnMatch": "butonText",
+                  "formatter": 1
+                },
+                "showBorder": false
+              }
+            },
+            "name": "query - 7"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n| where UpdateCategory == \"Feature\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| where ReleaseName in ({ReleaseName}) or '*' in ({ReleaseName})\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName\r\n| where DetailedStatus == \"{DetailedStatus}\" or \"{DetailedStatus}\" == \"Total\"\r\n| project  TimeGenerated, LastScan, Computer, DeploymentStatus, DetailedStatus, DeploymentError, CurrentOSVersion = OSVersion, CurrentOSBuild = OSBuild, ReleaseName, UpdateReleasedDate, DeferralDays, PauseState, ExpectedInstallDate\r\n| sort by UpdateReleasedDate, Computer desc",
+              "size": 0,
+              "timeContext": {
+                "durationMs": 172800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "DeploymentStatus",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Update completed",
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Failed",
+                          "representation": "failed",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Unknown",
+                          "representation": "unknown",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "In progress",
+                          "representation": "pending",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Progress stalled",
+                          "representation": "stopped",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "question",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "sortBy": [
+                  {
+                    "itemKey": "$gen_thresholds_DeploymentStatus_3",
+                    "sortOrder": 2
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "$gen_thresholds_DeploymentStatus_3",
+                  "sortOrder": 2
+                }
+              ]
+            },
+            "name": "query - 5"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "//DeviceInventory_CL\r\n//| summarize arg_max(TimeGenerated, *) by SerialNumber_s, SMBIOSUUID_g\r\n//| where isnotempty(WindowsVersion_s) and isnotempty(OSName_s)\r\n//| extend OSReleaseName = strcat(trim('Microsoft ', OSName_s), \" - \", WindowsVersion_s)\r\n//| extend OSName = tostring(extract_all(@'(Windows\\s\\d.)', OSName_s)[0])\r\n//| project Manufacturer = Manufacturer_s, OSReleaseName, OSName\r\n//| evaluate pivot (Manufacturer)\r\n\r\nIntuneDevices\r\n| summarize arg_max(TimeGenerated, *) by DeviceId\r\n| where OS == 'Windows'\r\n| join kind=leftouter (\r\n    UCClient\r\n    | summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n    ) on $left.ReferenceId == $right.AzureADDeviceId\r\n| summarize arg_max(TimeGenerated, *) by DeviceId \r\n| extend OSVersion = case(OSVersion1 contains \"windows\", OSVersion1, isempty (OSVersion1), strcat(\"Windows 10\"), strcat(\"Windows 10 - \",OSVersion1) )\r\n| extend OSVersion = replace_string(OSVersion,\"_\",\" -\")\r\n| extend OSName = tostring(extract_all(@'(Windows\\s\\d.)', OSVersion)[0])\r\n| project Manufacturer, SkuFamily, OSVersion, OSName\r\n| evaluate pivot (Manufacturer)\r\n",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Windows Build - By Manufacturer",
+              "timeContext": {
+                "durationMs": 172800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "table",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "OSName",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "Microsoft",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "blue"
+                    }
+                  },
+                  {
+                    "columnMatch": "_Empty",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "Dell",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "pink"
+                    }
+                  },
+                  {
+                    "columnMatch": "FUJITSU",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "orange"
+                    }
+                  },
+                  {
+                    "columnMatch": "HP",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "blueDark"
+                    }
+                  },
+                  {
+                    "columnMatch": "Lenovo",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "purpleDark"
+                    }
+                  },
+                  {
+                    "columnMatch": "VMware, Inc.",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "brown"
+                    }
+                  },
+                  {
+                    "columnMatch": "dcount_Manufacturer",
+                    "formatter": 5
+                  }
+                ],
+                "hierarchySettings": {
+                  "treeType": 1,
+                  "groupBy": [
+                    "OSName"
+                  ],
+                  "expandTopLevel": true
+                }
+              },
+              "tileSettings": {
+                "showBorder": false,
+                "titleContent": {
+                  "columnMatch": "Manufacturer",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "dcount_Manufacturer",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "auto"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              }
+            },
+            "name": "query - 8"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneDevices\r\n| summarize arg_max(TimeGenerated, *) by DeviceId\r\n| where OS == 'Windows'\r\n| join kind=leftouter (\r\n    UCClient\r\n    | summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n    ) on $left.ReferenceId == $right.AzureADDeviceId\r\n| summarize arg_max(TimeGenerated, *) by DeviceId \r\n| project Manufacturer, SkuFamily\r\n| evaluate pivot (SkuFamily)\r\n\r\n",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Windows Build - By Sku",
+              "timeContext": {
+                "durationMs": 172800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "table",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "Education",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "blue"
+                    }
+                  },
+                  {
+                    "columnMatch": "Enterprise",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "green"
+                    }
+                  },
+                  {
+                    "columnMatch": "Enterprise Insider Preview",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "purple"
+                    }
+                  },
+                  {
+                    "columnMatch": "Pro",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "brown"
+                    }
+                  },
+                  {
+                    "columnMatch": "dcount_Manufacturer",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "_Empty",
+                    "formatter": 5
+                  }
+                ]
+              },
+              "tileSettings": {
+                "showBorder": false,
+                "titleContent": {
+                  "columnMatch": "Manufacturer",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "dcount_Manufacturer",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "auto"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              }
+            },
+            "name": "query - 8 - Copy"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSUpdateStatus \r\n| project TimeGenerated, Computer, OSVersion\r\n| summarize dcount(Computer) by TimeGenerated, OSVersion",
+              "size": 1,
+              "aggregation": 1,
+              "title": "Feature Update Trending",
+              "timeContext": {
+                "durationMs": 172800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "areachart"
+            },
+            "name": "query - 7"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ByFeatureUpdate"
+      },
+      "name": "group - Feature Updates"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "# Patch Alerting\r\n-----\r\n\r\nPlease pay attention to this section for machines which are flagged for warning based on the following values\r\n\r\n1. Last Scan Date\r\n2. Missing Security Updates\r\n3. Unsupported Windows Builds",
+              "style": "warning"
+            },
+            "name": "text - 7"
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "### PrintNightmare Patch Monitor\r\n________________________\r\nMore information on this CVE and assoicated OOB updates can be found here - https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-34527 "
+            },
+            "name": "text - 2"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| where TimeGenerated > ago (90d)\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where ReleaseName matches regex \"(KB5004946|KB5004945|KB5004245|KB5004237)\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| summarize dcount(Computer) by TimeGenerated, DeploymentStatus",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "areachart",
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Unknown",
+                    "color": "gray"
+                  },
+                  {
+                    "seriesName": "Update completed",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Progress stalled",
+                    "color": "orange"
+                  },
+                  {
+                    "seriesName": "In progress",
+                    "color": "yellow"
+                  },
+                  {
+                    "seriesName": "Failed",
+                    "color": "red"
+                  }
+                ]
+              }
+            },
+            "name": "PrintNightmare Query"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| where TimeGenerated > ago (90d)\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where ReleaseName matches regex \"(KB5004946|KB5004945|KB5004245|KB5004237)\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| extend ReleaseName = strcat(OSVersion, ' - ', ReleaseName, ' - ', format_datetime(UpdateReleasedDate, 'yyyy/MM/dd'))\r\n| summarize arg_max(UpdateReleasedDate, *) by Computer, ReleaseName\r\n| summarize TotalRuns = count(), Success = countif(DeploymentStatus == 'Update completed'), Fails = countif(DeploymentStatus == 'Failed'), Unknown = countif(DeploymentStatus == 'Unknown'), ['In progress'] = countif(DeploymentStatus == 'In progress'), ['Progress stalled'] = countif(DeploymentStatus == 'Progress stalled') by ReleaseName // Summarize the total, successful and failed operations by name\r\n| extend SuccessRate = (Success * 100 / TotalRuns) // Calculate the percentage of succesful operations against the total\r\n| project ReleaseName, TotalRuns, [\"✔️Success\"] = Success, [\"❌Fails\"] = Fails, Unknown, ['In progress'], ['Progress stalled'], SuccessRate\r\n| order by ReleaseName",
+              "size": 3,
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "PrintNightmare Stats"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ByAlert"
+      },
+      "name": "Group - Patch Warnings"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "# Update Sources for last 30 days\r\n-----\r\nThe below statistics show the sources for update content across all devices. Downloads from the CDN and peers are determined by delivery optimisation policies on your clients. \r\n\r\nMore information on delivery optimisation can be found here - https://docs.microsoft.com/en-us/windows/deployment/update/waas-delivery-optimization ",
+                    "style": "info"
+                  },
+                  "name": "text - 0"
+                },
+                {
+                  "type": 12,
+                  "content": {
+                    "version": "NotebookGroup/1.0",
+                    "groupType": "editable",
+                    "items": [
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "WUDOAggregatedStatus\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BWOptPercent28Days, DeviceCount\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers)\r\n| sort by BytesFromCDN",
+                          "size": 3,
+                          "showAnalytics": true,
+                          "title": "Content Types - Last 30 days",
+                          "timeContext": {
+                            "durationMs": 2592000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "piechart",
+                          "chartSettings": {
+                            "yAxis": [
+                              "TotalBytes"
+                            ],
+                            "showMetrics": false,
+                            "showLegend": true
+                          }
+                        },
+                        "customWidth": "50",
+                        "name": "query - 2"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "WUDOStatus \r\n| summarize Count = dcount(ComputerID, 4) by DownloadMode, DownloadModeSrc\r\n| project [\"Download Mode\"] = DownloadMode, [\"Download Source\"] = DownloadModeSrc, [\"Device Count\"] = Count\r\n| order by [\"Device Count\"]",
+                          "size": 3,
+                          "showAnalytics": true,
+                          "title": "Delivery Optimisation Mode",
+                          "timeContext": {
+                            "durationMs": 2592000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "piechart"
+                        },
+                        "customWidth": "50",
+                        "name": "query - 10"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "WUDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| extend BytesFromCDNGB = format_bytes(BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(BytesFromPeers, 2)\r\n| extend [\"Total Bytes\"] = format_bytes((BytesFromCDN + BytesFromPeers),2, \"TB\")\r\n| sort by BytesFromCDN desc\r\n| project [\"Content Type\"] = ContentType, [\"Bytes from CDN\"] = BytesFromCDNGB, [\"Bytes from Peers\"] = BytesFromPeersGB, [\"Total Bytes\"], [\"Device Count\"] = DeviceCount\r\n\r\n",
+                          "size": 3,
+                          "showAnalytics": true,
+                          "title": "Content Break Down",
+                          "timeContext": {
+                            "durationMs": 2592000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "table",
+                          "gridSettings": {
+                            "formatters": [
+                              {
+                                "columnMatch": "BWOptPercent28Days",
+                                "formatter": 0,
+                                "numberFormat": {
+                                  "unit": 1,
+                                  "options": {
+                                    "style": "decimal",
+                                    "useGrouping": false
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "name": "query - 1"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "WUDOAggregatedStatus\r\n| project ContentType, BytesFromCDN, BytesFromPeers\r\n| sort by BytesFromCDN",
+                          "size": 0,
+                          "title": "Content Types - By Source",
+                          "timeContext": {
+                            "durationMs": 2592000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "unstackedbar",
+                          "tileSettings": {
+                            "showBorder": false,
+                            "titleContent": {
+                              "columnMatch": "ContentType",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "BytesFromCDN",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              },
+                              "numberFormat": {
+                                "unit": 17,
+                                "options": {
+                                  "maximumSignificantDigits": 3,
+                                  "maximumFractionDigits": 2
+                                }
+                              }
+                            }
+                          },
+                          "graphSettings": {
+                            "type": 0,
+                            "topContent": {
+                              "columnMatch": "ContentType",
+                              "formatter": 1
+                            },
+                            "centerContent": {
+                              "columnMatch": "BytesFromCDN",
+                              "formatter": 1,
+                              "numberFormat": {
+                                "unit": 17,
+                                "options": {
+                                  "maximumSignificantDigits": 3,
+                                  "maximumFractionDigits": 2
+                                }
+                              }
+                            }
+                          },
+                          "chartSettings": {
+                            "xAxis": "ContentType",
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "BytesFromCDN",
+                                "label": "Bytes from CDN",
+                                "color": "blue"
+                              },
+                              {
+                                "seriesName": "BytesFromPeers",
+                                "label": "Bytes from Peers",
+                                "color": "green"
+                              }
+                            ]
+                          }
+                        },
+                        "name": "query - 5"
+                      }
+                    ]
+                  },
+                  "customWidth": "60",
+                  "name": "DeliveryColumnLeft"
+                },
+                {
+                  "type": 12,
+                  "content": {
+                    "version": "NotebookGroup/1.0",
+                    "groupType": "editable",
+                    "items": [
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "WUDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| extend BytesFromCDNGB = format_bytes(BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(BytesFromPeers, 2)\r\n| sort by BytesFromCDN desc \r\n| extend CDNDistributionPercentage = todecimal(round((100 - BWOptPercent28Days),2))\r\n| extend PeerDistributionPercentage = todecimal(round((BWOptPercent28Days),2))\r\n| summarize [\"CDN Percentage\"] = avg(todecimal(round((CDNDistributionPercentage),1))), [\"Peer Percentage\"] = avg(todecimal(round((PeerDistributionPercentage),1)))",
+                          "size": 3,
+                          "title": "Delivery Optimisation Split",
+                          "timeContext": {
+                            "durationMs": 259200000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "table",
+                          "gridSettings": {
+                            "formatters": [
+                              {
+                                "columnMatch": "CDN Percentage",
+                                "formatter": 4,
+                                "formatOptions": {
+                                  "min": 0,
+                                  "max": 100,
+                                  "palette": "red",
+                                  "compositeBarSettings": {
+                                    "labelText": "",
+                                    "columnSettings": []
+                                  },
+                                  "customColumnWidthSetting": "150px"
+                                }
+                              },
+                              {
+                                "columnMatch": "Peer Percentage",
+                                "formatter": 4,
+                                "formatOptions": {
+                                  "min": 0,
+                                  "max": 100,
+                                  "palette": "green",
+                                  "customColumnWidthSetting": "150px"
+                                }
+                              }
+                            ]
+                          },
+                          "tileSettings": {
+                            "titleContent": {},
+                            "showBorder": false,
+                            "sortCriteriaField": "CDN Percentage",
+                            "size": "auto"
+                          }
+                        },
+                        "conditionalVisibility": {
+                          "parameterName": "s",
+                          "comparison": "isEqualTo",
+                          "value": "s"
+                        },
+                        "name": "query - 7"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "WUDOAggregatedStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers)\r\n| extend Total = (sum_BytesFromCDN + sum_BytesFromPeers)\r\n| project pCDN = (todouble(sum_BytesFromCDN) * 100 / todouble(Total)) , pPeers = (todouble(sum_BytesFromPeers) * 100 / todouble(Total))\r\n| evaluate narrow()\r\n| extend percent = '%'\r\n| project Column, todouble (Value)",
+                          "size": 3,
+                          "title": "Content Distribution",
+                          "timeContext": {
+                            "durationMs": 2592000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "piechart",
+                          "chartSettings": {
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "pCDN",
+                                "label": "CDN Distribution",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "pPeers",
+                                "label": "Peer Distribution",
+                                "color": "green"
+                              }
+                            ],
+                            "ySettings": {
+                              "numberFormatSettings": {
+                                "unit": 1,
+                                "options": {
+                                  "style": "decimal",
+                                  "useGrouping": true
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "name": "query - 5"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "WUDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| extend BytesFromCDNGB = format_bytes(BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(BytesFromPeers, 2)\r\n| extend TotalRawBytes = (BytesFromGroupPeers + BytesFromPeers)\r\n| summarize [\"Bandwidth Saving\"] = format_bytes(sum(TotalRawBytes),2)\r\n| extend Type = \"Bandwidth Savings\"",
+                          "size": 3,
+                          "timeContext": {
+                            "durationMs": 2592000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Type",
+                              "formatter": 18,
+                              "formatOptions": {
+                                "thresholdsOptions": "icons",
+                                "thresholdsGrid": [
+                                  {
+                                    "operator": "Default",
+                                    "thresholdValue": null,
+                                    "representation": "success",
+                                    "text": "{0}{1}"
+                                  }
+                                ]
+                              },
+                              "numberFormat": {
+                                "unit": 0,
+                                "options": {
+                                  "style": "decimal"
+                                }
+                              }
+                            },
+                            "leftContent": {
+                              "columnMatch": "Bandwidth Saving",
+                              "numberFormat": {
+                                "unit": 17,
+                                "options": {
+                                  "style": "decimal"
+                                }
+                              }
+                            },
+                            "showBorder": true,
+                            "sortCriteriaField": "Bandwidth Saving",
+                            "size": "auto"
+                          }
+                        },
+                        "name": "query - 8"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "WUDOAggregatedStatus\r\n| where TimeGenerated between (ago(30d) .. ago(0d) )\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, TimeGenerated\r\n\r\n",
+                          "size": 1,
+                          "title": "Update Sources Trend Last 30 days",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "areachart",
+                          "tileSettings": {
+                            "showBorder": false
+                          },
+                          "chartSettings": {
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "sum_BytesFromCDN",
+                                "label": "CDN Delivered",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "sum_BytesFromPeers",
+                                "label": "Peer Delivered",
+                                "color": "green"
+                              }
+                            ]
+                          }
+                        },
+                        "name": "query - 8"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "WUDOAggregatedStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, TimeGenerated",
+                          "size": 1,
+                          "title": "Update Sources Trend Last 7 days",
+                          "timeContext": {
+                            "durationMs": 604800000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "areachart",
+                          "chartSettings": {
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "sum_BytesFromCDN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "sum_BytesFromPeers",
+                                "color": "green"
+                              }
+                            ]
+                          }
+                        },
+                        "name": "query - 4"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "WUDOAggregatedStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, TimeGenerated",
+                          "size": 1,
+                          "title": "Update Sources Trend Last 48 hours",
+                          "timeContext": {
+                            "durationMs": 172800000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "areachart",
+                          "chartSettings": {
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "sum_BytesFromCDN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "sum_BytesFromPeers",
+                                "color": "green"
+                              }
+                            ]
+                          }
+                        },
+                        "name": "query - 6"
+                      }
+                    ]
+                  },
+                  "customWidth": "40",
+                  "name": "Bandwidth Saving"
+                }
+              ]
+            },
+            "name": "Group - Content Distribution"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ByDeliveryOptimisation"
+      },
+      "name": "Group - ByDeliveryOptimisation"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "# Windows 11 Readiness Status\r\n-----\r\n\r\nThis report provide on which devices in your environment meet the [hardware requriement](https://www.microsoft.com/en-us/windows/windows-11-specifications) for Windows 11",
+              "style": "info"
+            },
+            "name": "text - 7"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "7e86f04a-e86a-40d0-86d8-04f43c6fe35d",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "TimeRange",
+                  "type": 4,
+                  "isRequired": true,
+                  "value": {
+                    "durationMs": 259200000
+                  },
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 259200000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ],
+                    "allowCustom": true
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  },
+                  "timeContextFromParameter": "TimeRange"
+                },
+                {
+                  "id": "5b7ffc78-5bda-4635-8458-cf77ce182223",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "OSBuild",
+                  "label": "Current Build",
+                  "type": 2,
+                  "multiSelect": true,
+                  "quote": "'",
+                  "delimiter": ",",
+                  "query": "UCClientReadinessStatus\r\n| extend  MainBuild = tostring(split(OSBuild, \".\")[0])\r\n| summarize by MainBuild, OSBuild\r\n| project Value = OSBuild, Label = OSBuild, group = MainBuild\r\n| sort by group",
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::all"
+                    ],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "defaultValue": "value::all",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": [
+                    "value::all"
+                  ]
+                },
+                {
+                  "id": "adab14d9-4241-4f65-801a-4f62a9a36d15",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "TargetOSBuild",
+                  "type": 2,
+                  "query": "UCClientReadinessStatus\r\n| distinct TargetOSBuild",
+                  "value": "10.0.22000.194",
+                  "typeSettings": {
+                    "additionalResourceOptions": [],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "label": "Target Build"
+                }
+              ],
+              "style": "above",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 1"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "UCClientReadinessStatus \r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| where OSBuild has_any ({OSBuild}) and TargetOSBuild == \"{TargetOSBuild}\"\r\n| extend Readiness = iff(OSVersion contains \"Win11\", \"Upgraded\", ReadinessStatus)\r\n| join kind=innerunique \r\n    (IntuneDevices\r\n    | summarize arg_max(TimeGenerated, *) by ReferenceId\r\n    | where isnotempty (Manufacturer)\r\n    ) on $left.AzureADDeviceId == $right.ReferenceId\r\n| summarize count() by Readiness",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Windows 11 readiness Status",
+              "timeContext": {
+                "durationMs": 259200000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Capable",
+                    "color": "orange"
+                  },
+                  {
+                    "seriesName": "Unknown",
+                    "color": "gray"
+                  },
+                  {
+                    "seriesName": "NotCapable",
+                    "color": "redBright"
+                  },
+                  {
+                    "seriesName": "Upgraded",
+                    "color": "green"
+                  }
+                ]
+              }
+            },
+            "customWidth": "50",
+            "name": "query - 2"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "UCClientReadinessStatus \r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| where OSBuild has_any ({OSBuild}) and TargetOSBuild == \"{TargetOSBuild}\"\r\n| extend Readiness = iff(OSVersion contains \"Win11\", \"Upgraded\", ReadinessStatus)\r\n| join kind=innerunique \r\n    (IntuneDevices\r\n    | summarize arg_max(TimeGenerated, *) by ReferenceId\r\n    ) on $left.AzureADDeviceId == $right.ReferenceId\r\n| project Manufacturer, Readiness\r\n| evaluate pivot(Readiness)",
+              "size": 0,
+              "showAnalytics": true,
+              "title": "Windows 11 Readines Scan Status by Manufacturer",
+              "timeContext": {
+                "durationMs": 259200000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "NotCapable",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "orangeRed"
+                    }
+                  },
+                  {
+                    "columnMatch": "Upgraded",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "blueGreen"
+                    }
+                  },
+                  {
+                    "columnMatch": "Capable",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "blueGreen"
+                    }
+                  },
+                  {
+                    "columnMatch": "NotStarted",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "yellowGreenBlue"
+                    }
+                  },
+                  {
+                    "columnMatch": "Unknown",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "gray"
+                    }
+                  }
+                ]
+              }
+            },
+            "customWidth": "50",
+            "name": "query - 7"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "UCClientReadinessStatus \r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| where OSBuild has_any ({OSBuild}) and TargetOSBuild == \"{TargetOSBuild}\"\r\n| join kind=innerunique \r\n    (IntuneDevices\r\n    | summarize arg_max(TimeGenerated, *) by ReferenceId\r\n    ) on $left.AzureADDeviceId == $right.ReferenceId\r\n| where ReadinessStatus == 'NotCapable'\r\n//| extend ReadinessReasonArray = split(ReadinessReason, ';')\r\n//| extend ReadinessReason = array_slice(ReadinessReasonArray, 0, -2)\r\n//| mv-expand ReadinessReason\r\n| extend ReadinessReason = trim_end(\";\", tostring(ReadinessReason))\r\n| project ReadinessReason, Manufacturer\r\n| evaluate pivot(Manufacturer)",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Windows 11 NotCapable Reasons  by Manufacturer",
+              "timeContext": {
+                "durationMs": 259200000
+              },
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "FUJITSU",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "blueGreen"
+                    }
+                  },
+                  {
+                    "columnMatch": "Hewlett-Packard",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "bluePurple"
+                    }
+                  },
+                  {
+                    "columnMatch": "HP",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "greenBlue"
+                    }
+                  },
+                  {
+                    "columnMatch": "LENOVO",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "orangeRed"
+                    }
+                  },
+                  {
+                    "columnMatch": "Microsoft Corporation",
+                    "formatter": 8,
+                    "formatOptions": {
+                      "palette": "yellowGreen"
+                    }
+                  }
+                ],
+                "sortBy": [
+                  {
+                    "itemKey": "ReadinessReason",
+                    "sortOrder": 1
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "ReadinessReason",
+                  "sortOrder": 1
+                }
+              ]
+            },
+            "name": "query - 6"
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "## Windows 11 Readiness Details",
+              "style": "info"
+            },
+            "name": "text - 8"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "82499f64-dd38-4fac-92e2-8d8fbd1564d6",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Windows11Readiness",
+                  "label": "Windows 11 Readiness",
+                  "type": 2,
+                  "isRequired": true,
+                  "query": "UCClientReadinessStatus\r\n| extend Readiness = iff(OSVersion contains \"Win11\", \"Upgraded\", ReadinessStatus)\r\n| distinct Readiness",
+                  "value": "Unknown",
+                  "typeSettings": {
+                    "additionalResourceOptions": [],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                },
+                {
+                  "id": "48d057e4-00fb-4ab4-b9ff-8c37a89624e3",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "DeviceName",
+                  "type": 1,
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange"
+                },
+                {
+                  "id": "17e57a8b-91af-48c1-aa6f-d5ebd5a9423f",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "UPN",
+                  "label": "User Principal Name",
+                  "type": 1,
+                  "value": "",
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange"
+                },
+                {
+                  "id": "20a1ceac-5788-4272-b84a-e45f1e4c5264",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Manufacturer",
+                  "type": 2,
+                  "multiSelect": true,
+                  "quote": "'",
+                  "delimiter": ",",
+                  "query": "IntuneDevices\r\n| where OS == 'Windows' and isnotempty(Manufacturer)\r\n| distinct Manufacturer",
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::all"
+                    ],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 2592000000
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "defaultValue": "value::all",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "above",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 4 - Copy"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let DeviceDetails = UCClient\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| join kind=innerunique \r\n    (IntuneDevices\r\n    | summarize arg_max(TimeGenerated, *) by ReferenceId\r\n    ) on $left.AzureADDeviceId == $right.ReferenceId;\r\nUCClientReadinessStatus \r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| where OSBuild has_any ({OSBuild}) and TargetOSBuild == \"{TargetOSBuild}\"\r\n| extend Readiness = iff(OSVersion contains \"Win11\", \"Upgraded\", ReadinessStatus)\r\n| where Readiness == \"{Windows11Readiness}\"\r\n| join kind=innerunique DeviceDetails on $left.AzureADDeviceId == $right.ReferenceId\r\n| extend DeviceName = DeviceName1\r\n| extend DeviceUrl = strcat('https://endpoint.microsoft.com/#blade/Microsoft_Intune_Devices/DeviceSettingsBlade/overview/mdmDeviceId/', DeviceId)\r\n| where \"{DeviceName:escape}\" == \"*\" or DeviceName contains \"{DeviceName:escape}\" or isempty (DeviceName)\r\n| where \"{UPN:escape}\" == \"*\" or UPN contains \"{UPN:escape}\" or isempty (UPN)\r\n| where Manufacturer has_any ({Manufacturer})\r\n| project DeviceName, CurrentOSVersion = OSVersion, CurrentOSBuild = OSBuild1, TargetOSName, TargetOSVersion, TargetOSBuild, Readiness, DeviceFamily, Country, OSServicingChannel, UserName, UserEmail, EncryptionStatusString, JoinType, Manufacturer, Model, SerialNumber, StorageTotal, StorageFree, DeviceUrl\r\n",
+              "size": 0,
+              "showAnalytics": true,
+              "timeContext": {
+                "durationMs": 259200000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "DeviceName",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "linkColumn": "DeviceUrl",
+                      "linkTarget": "Url"
+                    }
+                  },
+                  {
+                    "columnMatch": "ReadinessStatus",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "NotStarted",
+                          "representation": "unknown",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "DeviceUrl",
+                    "formatter": 5
+                  }
+                ]
+              }
+            },
+            "conditionalVisibility": {
+              "parameterName": "Windows11Readiness",
+              "comparison": "isNotEqualTo",
+              "value": "NotCapable"
+            },
+            "name": "query - 9"
+          },
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 9,
+                  "content": {
+                    "version": "KqlParameterItem/1.0",
+                    "parameters": [
+                      {
+                        "id": "40e6c1d8-d4ce-4e54-b182-9719e6548f44",
+                        "version": "KqlParameterItem/1.0",
+                        "name": "ReadinessReason",
+                        "label": "Not Capable Reason",
+                        "type": 2,
+                        "multiSelect": true,
+                        "quote": "'",
+                        "delimiter": ",",
+                        "query": "UCClientReadinessStatus \r\n| summarize arg_max(TimeGenerated, *) by AzureADDeviceId\r\n| where ReadinessStatus == 'NotCapable'\r\n| extend ReadinessReasonArray = split(ReadinessReason, ';')\r\n| extend ReadinessReason = array_slice(ReadinessReasonArray, 0, -2)\r\n| mv-expand ReadinessReason\r\n| distinct tostring(ReadinessReason)",
+                        "typeSettings": {
+                          "additionalResourceOptions": [
+                            "value::all"
+                          ],
+                          "showDefault": false
+                        },
+                        "timeContext": {
+                          "durationMs": 2592000000
+                        },
+                        "timeContextFromParameter": "TimeRange",
+                        "defaultValue": "value::all",
+                        "queryType": 0,
+                        "resourceType": "microsoft.operationalinsights/workspaces",
+                        "value": [
+                          "value::all"
+                        ]
+                      }
+                    ],
+                    "style": "above",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces"
+                  },
+                  "name": "parameters - 9"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "let DeviceDetails = UCClient\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| join kind=innerunique \r\n    (IntuneDevices\r\n    | summarize arg_max(TimeGenerated, *) by ReferenceId\r\n    ) on $left.AzureADDeviceId == $right.ReferenceId;\r\nUCClientReadinessStatus \r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| where OSBuild has_any ({OSBuild}) and TargetOSBuild == \"{TargetOSBuild}\"\r\n| join kind=innerunique DeviceDetails on $left.AzureADDeviceId == $right.ReferenceId\r\n| where ReadinessStatus == \"NotCapable\"\r\n//| extend ReadinessReasonArray = split(ReadinessReason, ';')\r\n//| extend ReadinessReason = array_slice(ReadinessReasonArray, 0, -2)\r\n//| mv-expand ReadinessReason\r\n| extend ReadinessReason = trim_end(\";\", tostring(ReadinessReason))\r\n| extend DeviceName = DeviceName1\r\n| extend DeviceUrl = strcat('https://endpoint.microsoft.com/#blade/Microsoft_Intune_Devices/DeviceSettingsBlade/overview/mdmDeviceId/', DeviceId)\r\n| where \"{DeviceName:escape}\" == \"*\" or DeviceName contains \"{DeviceName:escape}\" or isempty (DeviceName)\r\n| where \"{UPN:escape}\" == \"*\" or UPN contains \"{UPN:escape}\" or isempty (UPN)\r\n| where ReadinessReason has_any ({ReadinessReason}) //or ReadinessReason in ({ReadinessReason}) or '*' in ({ReadinessReason})\r\n| where Manufacturer has_any ({Manufacturer})\r\n| project ReadinessScanTime, ReadinessExpiryTime, DeviceName, CurrentOSVersion = OSVersion, CurrentOSBuild = OSBuild1, TargetOSName, TargetOSVersion, TargetOSBuild, ReadinessStatus, ReadinessReason, DeviceFamily, Country, OSServicingChannel, UserName, UserEmail, EncryptionStatusString, JoinType, Manufacturer, Model, SerialNumber, StorageTotal, StorageFree, DeviceUrl\r\n",
+                    "size": 0,
+                    "showAnalytics": true,
+                    "timeContext": {
+                      "durationMs": 259200000
+                    },
+                    "timeContextFromParameter": "TimeRange",
+                    "showExportToExcel": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "gridSettings": {
+                      "formatters": [
+                        {
+                          "columnMatch": "DeviceName",
+                          "formatter": 1,
+                          "formatOptions": {
+                            "linkColumn": "DeviceUrl",
+                            "linkTarget": "Url"
+                          }
+                        },
+                        {
+                          "columnMatch": "DeviceUrl",
+                          "formatter": 5
+                        }
+                      ],
+                      "rowLimit": 3000
+                    }
+                  },
+                  "name": "query - 5"
+                }
+              ]
+            },
+            "conditionalVisibility": {
+              "parameterName": "Windows11Readiness",
+              "comparison": "isEqualTo",
+              "value": "NotCapable"
+            },
+            "name": "group - NotCapable"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ByWindows11"
+      },
+      "name": "Group - Windows 11 Readiness"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "----\r\n## Quality Update Deployment Issues\r\n\r\nThis page provides an oversight as to devices which are failing to update, along with a description of the update failure, and overall exceptions charts.",
+              "style": "warning"
+            },
+            "name": "text - 4"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "251f4926-bda6-46d4-9880-46d02aa1bb9b",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "TimeRange",
+                  "type": 4,
+                  "isRequired": true,
+                  "value": {
+                    "durationMs": 1209600000
+                  },
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 86400000
+                      },
+                      {
+                        "durationMs": 172800000
+                      },
+                      {
+                        "durationMs": 259200000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2419200000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ],
+                    "allowCustom": true
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  }
+                },
+                {
+                  "id": "8bc1bde2-a39b-45e1-81bc-21c311841ff3",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "DeviceName",
+                  "label": "Device Name",
+                  "type": 1,
+                  "value": "",
+                  "timeContext": {
+                    "durationMs": 2592000000
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "defaultValue": "value::1"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 5 - Copy - Copy"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| where isnotempty(DeploymentError)\r\n| where DeploymentStatus != \"Update completed\"\r\n| where \"{DeviceName:escape}\" == \"*\" or Computer contains \"{DeviceName:escape}\" or \"{DeviceName:escape}\" == \"All devices\"\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName, DetailedStatus\r\n| summarize Count = dcount(ComputerID, 4) by DetailedStatus\r\n",
+              "size": 3,
+              "title": "Deployment State",
+              "timeContext": {
+                "durationMs": 1209600000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Commit",
+                    "color": "blue"
+                  },
+                  {
+                    "seriesName": "Install started",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Reboot pending",
+                    "color": "orange"
+                  }
+                ]
+              }
+            },
+            "customWidth": "33",
+            "name": "Update Exception Piechart"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| where isnotempty(DeploymentError)\r\n| where DeploymentStatus != \"Update completed\"\r\n| where \"{DeviceName:escape}\" == \"*\" or Computer contains \"{DeviceName:escape}\" or \"{DeviceName:escape}\" == \"All devices\"\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName, DetailedStatus\r\n| summarize Count = dcount(ComputerID, 4) by DeploymentStatus",
+              "size": 3,
+              "title": "Deployment Status",
+              "timeContext": {
+                "durationMs": 1209600000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Update completed",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "In progress",
+                    "color": "yellow"
+                  },
+                  {
+                    "seriesName": "Progress stalled",
+                    "color": "orange"
+                  },
+                  {
+                    "seriesName": "Failed",
+                    "color": "red"
+                  }
+                ]
+              }
+            },
+            "customWidth": "33",
+            "name": "Deployment Status Issue Piechart"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| where isnotempty(DeploymentError)\r\n| where DeploymentStatus != \"Update completed\"\r\n| where \"{DeviceName:escape}\" == \"*\" or Computer contains \"{DeviceName:escape}\" or \"{DeviceName:escape}\" == \"All devices\"\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName, DetailedStatus\r\n| summarize Count = dcount(ComputerID, 4) by PauseState\r\n| extend UpdatesActive = case(PauseState == 'NotConfigured', 'Active', PauseState)\r\n| project Count, UpdatesActive",
+              "size": 3,
+              "title": "Update Status",
+              "timeContext": {
+                "durationMs": 1209600000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Active",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Paused",
+                    "color": "orange"
+                  }
+                ]
+              }
+            },
+            "customWidth": "33",
+            "name": "Update Activity Chart"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n| extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n| where UpdateCategory == \"Quality\" and UpdateClassification == \"Security\"\r\n| where isnotempty(UpdateReleasedDate)\r\n| where isnotempty (Computer)\r\n| where isnotempty(DeploymentError)\r\n| where DeploymentStatus != \"Update completed\"\r\n| where \"{DeviceName:escape}\" == \"*\" or Computer contains \"{DeviceName:escape}\" or \"{DeviceName:escape}\" == \"All devices\"\r\n| summarize arg_max(TimeGenerated, *) by Computer, ReleaseName, DetailedStatus\r\n| project  Computer, DeploymentStatus, DetailedStatus, DeploymentError, CurrentOSVersion = OSVersion, CurrentOSBuild = OSBuild, ReleaseName, UpdateReleasedDate, DeferralDays, PauseState, ExpectedInstallDate, TimeGenerated, LastScan\r\n| sort by TimeGenerated desc, Computer desc",
+              "size": 0,
+              "timeContext": {
+                "durationMs": 1209600000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "DeploymentStatus",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Failed",
+                          "representation": "4",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Progress stalled",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "==",
+                          "thresholdValue": "In progress",
+                          "representation": "1",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "DetailedStatus",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Reboot",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "PauseState",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Paused",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "name": "query - 5"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "d5c4efce-b892-4c4c-8e4a-853c10ece0e8",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "SafeguardCount",
+                  "label": "Safeguard Count",
+                  "type": 1,
+                  "query": "WaaSDeploymentStatus\r\n    | extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n    | summarize arg_max(TimeGenerated, *) by ComputerID, ReleaseName\r\n    | where UpdateCategory == \"Feature\"\r\n    | where DetailedStatus == \"Safeguard Hold\"\r\n    | summarize dcount (Computer) by DetailedStatus\r\n    | project dcount_Computer",
+                  "isHiddenWhenLocked": true,
+                  "timeContext": {
+                    "durationMs": 86400000
+                  },
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 13"
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "\r\n## Safeguard Hold Detected\r\n\r\nSafeguard holds prevent a device with a known issue from being offered a new operating system version.\r\n\r\nMicrosoft uses quality and compatibility data to identify issues that might cause a Windows client feature update to fail or roll back. When we find such an issue, we might apply safeguard holds to the updating service to prevent affected devices from installing the update in order to safeguard them from these experiences. We also use safeguard holds when a customer, a partner, or Microsoft internal validation finds an issue that would cause severe impact (for example, rollback of the update, data loss, loss of connectivity, or loss of key functionality) and when a workaround is not immediately available.\r\n\r\nMore information can be found here - https://docs.microsoft.com/en-us/windows/deployment/update/safeguard-holds",
+              "style": "warning"
+            },
+            "conditionalVisibility": {
+              "parameterName": "SafeguardCount",
+              "comparison": "isNotEqualTo"
+            },
+            "name": "text - 11"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "WaaSDeploymentStatus\r\n    | extend DetailedStatus = case(DetailedStatus == 'Update successful', 'UpdateSuccessful', DetailedStatus)\r\n    | summarize arg_max(TimeGenerated, *) by ComputerID, ReleaseName\r\n    | where UpdateCategory == \"Feature\"\r\n    | where DetailedStatus == \"Safeguard Hold\"\r\n| project TimeGenerated, Computer, ReleaseName, DetailedStatus, DeploymentStatus, DeploymentError, DeploymentErrorCode",
+              "size": 3,
+              "timeContext": {
+                "durationMs": 1209600000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "DetailedStatus",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Safeguard Hold",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "DeploymentStatus",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Failed",
+                          "representation": "4",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "rowLimit": 25
+              },
+              "sortBy": []
+            },
+            "name": "query - 10"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ByComplianceIssue"
+      },
+      "name": "ByComplianceIssue"
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
