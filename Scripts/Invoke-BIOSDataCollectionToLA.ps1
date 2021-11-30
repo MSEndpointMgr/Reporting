@@ -113,7 +113,7 @@ foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
     if (-not([string]::IsNullOrEmpty($Sku))){
         #$DellBiosXML = Get-XMLData -XMLUrl "https://azurefilesnorway.blob.core.windows.net/dat/CatalogPC.xml"
         $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent
-        $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)}
+        $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Sort-Object -Property VendorVersion -Descending | Select-Object -First 1
         $CurrentDellBIOSVersion = $DellBIOSLatest.dellVersion
         [DateTime]$CurrentDellBIOSDate = $DellBIOSLatest.releaseDate
         #Write-Output "SKU:$($sku),Version:$($BiosLatest.ver),Date:$($BiosLatest.date)"
