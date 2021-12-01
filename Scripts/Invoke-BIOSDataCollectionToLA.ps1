@@ -14,6 +14,7 @@
     Updated:     2021-09-08
     Version history:
     1.0.0 - (2021-Nov-3) Initial version
+    1.0.1 - (2021-Dec-01) Fixed issue with Dell BIOS version sorting and more than one entry pr SKU in OEMs XML file. 
 .EXAMPLE
 #>
 #Requires -Modules 7Zip4Powershell, Az.Accounts, Az.OperationalInsights
@@ -107,13 +108,21 @@ $DellSystemSKUsQuery = "$($InventoryLog) | where Manufacturer_s contains `"Dell`
 $DellSystemSKUs = Invoke-AZOperationalInsightsQuery -WorkspaceId $WorkspaceID -Query $DellSystemSKUsQuery
 #Query OEM, Process and inject to LA
 Invoke-WebRequest -Uri "https://downloads.dell.com/catalog/CatalogPC.cab" -OutFile (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.cab")
-Expand-7Zip -ArchiveFileName (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.cab") -TargetPath $env:TEMP
+if (Test-Path -Path (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.xml")){
+    Remove-Item (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.xml")
+    }
+Expand-7Zip -ArchiveFileName (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.cab") -TargetPath $env:TEMP 
 [xml]$DellBIOSXML = Get-Content -Path (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.xml")
 foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
     if (-not([string]::IsNullOrEmpty($Sku))){
-        #$DellBiosXML = Get-XMLData -XMLUrl "https://azurefilesnorway.blob.core.windows.net/dat/CatalogPC.xml"
-        $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent
-        $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Sort-Object -Property VendorVersion -Descending | Select-Object -First 1
+        $AllBIOSVersions = ($DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)}).vendorVersion
+        $VersionBIOSVersion = @()
+        foreach ($BIOSVersion in $AllBIOSVersions){
+            [Version]$BIOSVersion = $BIOSVersion
+            $VersionBIOSVersion += $BIOSVersion
+        }
+        $VersionBIOSVersionLatest = ($VersionBIOSVersion | Sort-Object -Property VendorVersion -Descending | Select-Object -First 1).ToString()
+        $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Where-Object {$_.vendorVersion -match $VersionBIOSVersionLatest}
         $CurrentDellBIOSVersion = $DellBIOSLatest.dellVersion
         [DateTime]$CurrentDellBIOSDate = $DellBIOSLatest.releaseDate
         #Write-Output "SKU:$($sku),Version:$($BiosLatest.ver),Date:$($BiosLatest.date)"
