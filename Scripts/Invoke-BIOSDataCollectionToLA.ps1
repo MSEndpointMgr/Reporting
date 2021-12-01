@@ -141,11 +141,11 @@ foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
         $BIOSJson = $BIOSInventory | ConvertTo-Json
         #write-output $BIOSJson
         try {
-            #$ResponseBIOSInventory = Send-LogAnalyticsData -customerId $WorkspaceID -sharedKey $SharedKey -body ([System.Text.Encoding]::UTF8.GetBytes($BIOSJson)) -logType $BIOSLogType -ErrorAction Stop
+            $ResponseBIOSInventory = Send-LogAnalyticsData -customerId $WorkspaceID -sharedKey $SharedKey -body ([System.Text.Encoding]::UTF8.GetBytes($BIOSJson)) -logType $BIOSLogType -ErrorAction Stop
             Write-Output "BIOS Information injected for SKU $($SKU)"
         } catch {
-            #$ResponseBIOSInventory = "Error Code: $($_.Exception.Response.StatusCode.value__)"
-            #$ResponseBIOSMessage = $_.Exception.Message
+            $ResponseBIOSInventory = "Error Code: $($_.Exception.Response.StatusCode.value__)"
+            $ResponseBIOSMessage = $_.Exception.Message
             Write-Output "Error $($ResponseBIOSInventory), Message $($ResponseBIOSMessage)"
         }
     }      
