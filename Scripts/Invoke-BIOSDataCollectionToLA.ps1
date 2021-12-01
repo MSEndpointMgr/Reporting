@@ -116,12 +116,11 @@ Expand-7Zip -ArchiveFileName (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.ca
 foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
     if (-not([string]::IsNullOrEmpty($Sku))){
         $AllBIOSVersions = ($DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)}).vendorVersion
-        Write-Output "Testing $($AllBIOSVersions) on $($SKU)"
+        Write-Verbose "Testing $($AllBIOSVersions) on $($SKU)"
         $VersionBIOSVersion = @()
         if ($AllBIOSVersions -match "[a-zA-Z][0-9]{2}"){
-            Write-Output "Using older BIOS version format $($AllBIOSVersions)"
-            $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Sort-Object -Property vendorVersion -Descending | Select-Object -First 1
-            
+            Write-Verbose "Using older BIOS version format $($AllBIOSVersions)"
+            $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Sort-Object -Property vendorVersion -Descending | Select-Object -First 1            
         } 
         else {
             foreach ($BIOSVersion in $AllBIOSVersions){   
