@@ -122,8 +122,8 @@ foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
             Write-Output "Using older BIOS version format $($AllBIOSVersions)"
             $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Sort-Object -Property vendorVersion -Descending | Select-Object -First 1
             
-        } else 
-        {
+        } 
+        else {
             foreach ($BIOSVersion in $AllBIOSVersions){   
                 [Version]$BIOSVersion = $BIOSVersion
                 $VersionBIOSVersion += $BIOSVersion
