@@ -14,7 +14,7 @@
     Updated:     2021-09-08
     Version history:
     1.0.0 - (2021-Nov-3) Initial version
-    1.0.1 - (2021-Dec-01) Fixed issue with Dell BIOS version sorting and more than one entry pr SKU in OEMs XML file. 
+    1.0.1 - (2021-Dec-01) Fixed issue with Dell BIOS version sorting and more than one entry pr SKU in OEMs XML file and catering for older format (ex: A15)
 .EXAMPLE
 #>
 #Requires -Modules 7Zip4Powershell, Az.Accounts, Az.OperationalInsights
@@ -116,13 +116,21 @@ Expand-7Zip -ArchiveFileName (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.ca
 foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
     if (-not([string]::IsNullOrEmpty($Sku))){
         $AllBIOSVersions = ($DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)}).vendorVersion
+        Write-Output "Testing $($AllBIOSVersions) on $($SKU)"
         $VersionBIOSVersion = @()
-        foreach ($BIOSVersion in $AllBIOSVersions){
-            [Version]$BIOSVersion = $BIOSVersion
-            $VersionBIOSVersion += $BIOSVersion
+        if ($AllBIOSVersions -match "[a-zA-Z][0-9]{2}"){
+            Write-Output "Using older BIOS version format $($AllBIOSVersions)"
+            $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Sort-Object -Property vendorVersion -Descending | Select-Object -First 1
+            
+        } else 
+        {
+            foreach ($BIOSVersion in $AllBIOSVersions){   
+                [Version]$BIOSVersion = $BIOSVersion
+                $VersionBIOSVersion += $BIOSVersion
+            }
+            $VersionBIOSVersionLatest = ($VersionBIOSVersion | Sort-Object -Property VendorVersion -Descending | Select-Object -First 1).ToString()
+            $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Where-Object {$_.vendorVersion -match $VersionBIOSVersionLatest}
         }
-        $VersionBIOSVersionLatest = ($VersionBIOSVersion | Sort-Object -Property VendorVersion -Descending | Select-Object -First 1).ToString()
-        $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Where-Object {$_.vendorVersion -match $VersionBIOSVersionLatest}
         $CurrentDellBIOSVersion = $DellBIOSLatest.dellVersion
         [DateTime]$CurrentDellBIOSDate = $DellBIOSLatest.releaseDate
         #Write-Output "SKU:$($sku),Version:$($BiosLatest.ver),Date:$($BiosLatest.date)"
@@ -134,11 +142,11 @@ foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
         $BIOSJson = $BIOSInventory | ConvertTo-Json
         #write-output $BIOSJson
         try {
-            $ResponseBIOSInventory = Send-LogAnalyticsData -customerId $WorkspaceID -sharedKey $SharedKey -body ([System.Text.Encoding]::UTF8.GetBytes($BIOSJson)) -logType $BIOSLogType -ErrorAction Stop
+            #$ResponseBIOSInventory = Send-LogAnalyticsData -customerId $WorkspaceID -sharedKey $SharedKey -body ([System.Text.Encoding]::UTF8.GetBytes($BIOSJson)) -logType $BIOSLogType -ErrorAction Stop
             Write-Output "BIOS Information injected for SKU $($SKU)"
         } catch {
-            $ResponseBIOSInventory = "Error Code: $($_.Exception.Response.StatusCode.value__)"
-            $ResponseBIOSMessage = $_.Exception.Message
+            #$ResponseBIOSInventory = "Error Code: $($_.Exception.Response.StatusCode.value__)"
+            #$ResponseBIOSMessage = $_.Exception.Message
             Write-Output "Error $($ResponseBIOSInventory), Message $($ResponseBIOSMessage)"
         }
     }      
