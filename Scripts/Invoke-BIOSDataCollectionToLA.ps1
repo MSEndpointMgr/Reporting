@@ -15,6 +15,7 @@
     Version history:
     1.0.0 - (2021-Nov-3) Initial version
     1.0.1 - (2021-Dec-01) Fixed issue with Dell BIOS version sorting and more than one entry pr SKU in OEMs XML file and catering for older format (ex: A15)
+    1.0.2 - (2021-Dec-01) Fixed issue with missing HP BIOS info and improved version matching
 .EXAMPLE
 #>
 #Requires -Modules 7Zip4Powershell, Az.Accounts, Az.OperationalInsights
@@ -127,8 +128,8 @@ foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
                 [Version]$BIOSVersion = $BIOSVersion
                 $VersionBIOSVersion += $BIOSVersion
             }
-            $VersionBIOSVersionLatest = ($VersionBIOSVersion | Sort-Object -Property VendorVersion -Descending | Select-Object -First 1).ToString()
-            $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Where-Object {$_.vendorVersion -match $VersionBIOSVersionLatest}
+            $VersionBIOSVersionLatest = $VersionBIOSVersion | Sort-Object -Descending | Select-Object -First 1
+            $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Where-Object {[Version]$_.vendorVersion -match $VersionBIOSVersionLatest}
         }
         $CurrentDellBIOSVersion = $DellBIOSLatest.dellVersion
         [DateTime]$CurrentDellBIOSDate = $DellBIOSLatest.releaseDate
@@ -159,19 +160,46 @@ $HPSystemSKUs = Invoke-AZOperationalInsightsQuery -WorkspaceId $WorkspaceID -Que
 # Fetching latest HP BIOS release info from HP
 foreach($SKU in $HPSystemSKUs.Results.SystemSKU_s){
     if (-not([string]::IsNullOrEmpty($Sku))){
-        $BIOSXML = Get-XMLData -XMLUrl "https://ftp.ext.hp.com/pub/pcbios/$($SKU)/$($SKU).xml" 
-        $BIOSLatest = $BIOSXML.BIOS.Rel | Sort-Object -Descending -Property ver | Select-Object -First 1
-        $CurrentBIOSVersion = $BIOSLatest.ver
-        [DateTime]$CurrentBIOSDate = $BIOSLatest.date
+        $BIOSXML = $null
+        try{
+            $Request = Invoke-WebRequest -uri "https://ftp.ext.hp.com/pub/pcbios/$($SKU)/$($SKU).xml" 
+            $URLStatus = $Request.StatusCode
+         } catch{
+            $URLStatus = $($_.Exception.Response.StatusCode.Value__)
+            Write-Output "Unable to find BIOS Information from HP for SKU $($SKU) - Error $($URLStatus)"
+         }
         
-        #Write-Output "SKU:$($sku),Version:$($BiosLatest.ver),Date:$($BiosLatest.date)"
-        $BIOSInventory = New-Object System.Object
-        $BIOSInventory | Add-Member -MemberType NoteProperty -Name "SKU" -Value "$SKU" -Force   
-        $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMVersion" -Value "$CurrentBIOSVersion" -Force   
-        $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMDate" -Value "$CurrentBIOSDate" -Force 
-        $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEM" -Value "HP" -Force             
-        $BIOSJson = $BIOSInventory | ConvertTo-Json
-        #write-output $BIOSJson
+        if ($URLStatus -ne "404"){
+            $BIOSXML = Get-XMLData -XMLUrl "https://ftp.ext.hp.com/pub/pcbios/$($SKU)/$($SKU).xml" 
+            $AllHPBIOSVersions = $BIOSXML.BIOS.Rel
+            
+            $VersionHPBIOSVersion = @()
+            foreach ($HPBIOSVersion in $AllHPBIOSVersions.ver){   
+                [Version]$HPBIOSVersion = $HPBIOSVersion
+                $VersionHPBIOSVersion += $HPBIOSVersion
+            }
+            $VersionHPBIOSVersionLatest = ($VersionHPBIOSVersion | Sort-Object -Descending | Select-Object -First 1)#.ToString()
+            $BIOSLatest = $BIOSXML.BIOS.Rel | Where-Object {[Version]$_.Ver -match $VersionHPBIOSVersionLatest}
+            $CurrentBIOSVersion = $BIOSLatest.ver
+            [DateTime]$CurrentBIOSDate = $BIOSLatest.date
+            
+            #Write-Output "SKU:$($sku),Version:$($BiosLatest.ver),Date:$($BiosLatest.date)"
+            $BIOSInventory = New-Object System.Object
+            $BIOSInventory | Add-Member -MemberType NoteProperty -Name "SKU" -Value "$SKU" -Force   
+            $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMVersion" -Value "$CurrentBIOSVersion" -Force   
+            $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMDate" -Value "$CurrentBIOSDate" -Force 
+            $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEM" -Value "HP" -Force             
+            $BIOSJson = $BIOSInventory | ConvertTo-Json
+            #write-output $BIOSJson
+        }
+        else{
+            $BIOSInventory = New-Object System.Object
+            $BIOSInventory | Add-Member -MemberType NoteProperty -Name "SKU" -Value "$SKU" -Force   
+            $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMVersion" -Value "NA" -Force   
+            $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMDate" -Value "NA" -Force       
+            $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEM" -Value "HP" -Force       
+            $BIOSJson = $BIOSInventory | ConvertTo-Json
+        }    
         try {
             $ResponseBIOSInventory = Send-LogAnalyticsData -customerId $WorkspaceID -sharedKey $SharedKey -body ([System.Text.Encoding]::UTF8.GetBytes($BIOSJson)) -logType $BIOSLogType -ErrorAction Stop
             Write-Output "BIOS Information injected for SKU $($SKU)"
@@ -199,8 +227,8 @@ foreach($SKU in $LenovoSystemSKUs.Results.SystemSKU_s){
             $URLStatus = $Request.StatusCode
          } catch{
             $URLStatus = $($_.Exception.Response.StatusCode.Value__)
+            Write-Output "Unable to find BIOS Information from Lenovo for SKU $($SKU) - Error $($URLStatus)"
          }
-        Write-Output $URLStatus 
         if ($URLStatus -ne "404"){
         [xml]$ValidBIOSLocationXML = Get-XMLData -XMLUrl ($LenovoBiosBase + "$SKU" + "_Win10.xml")
         $LenovoModelBIOSInfo = $ValidBIOSLocationXML.Packages.Package | Where-Object {$_.Category -match "BIOS" } | Sort-Object Location -Descending | Select-Object -First 1
