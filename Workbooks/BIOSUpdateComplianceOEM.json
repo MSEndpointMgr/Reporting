@@ -133,7 +133,7 @@
         "type": 3,
         "content": {
           "version": "KqlItem/1.0",
-          "query": "let BIOSDATA = OEMBIOSInformation_CL \r\n| summarize arg_max(TimeGenerated, *) by SKU_s;\r\nDeviceInventory_CL\r\n| join kind=leftouter BIOSDATA on $right.SKU_s == $left.SystemSKU_s\r\n| where OEM_s == \"HP\" or OEM_s == \"Dell\" or OEM_s == \"Lenovo\" or OEM_s == \"Dell Inc.\"\t\r\n| extend ComputerOEMUpdateStatus = iff((parse_version(BiosVersion_s) < parse_version(OEMVersion_s)), \"Update available from OEM\", \"OK\")\r\n| summarize arg_max(TimeGenerated, *) by ManagedDeviceID_g\r\n| distinct OEM_s, Model_s, SystemSKU_s\r\n",
+          "query": "let BIOSDATA = OEMBIOSInformation_CL \r\n| summarize arg_max(TimeGenerated, *) by SKU_s;\r\nDeviceInventory_CL\r\n| join kind=leftouter BIOSDATA on $right.SKU_s == $left.SystemSKU_s\r\n| where OEM_s == \"HP\" or OEM_s == \"Dell\" or OEM_s == \"Lenovo\" or OEM_s == \"Dell Inc.\"\t\r\n| extend ComputerOEMUpdateStatus = iff((parse_version(BIOSVersion_s) < parse_version(OEMVersion_s)), \"Update available from OEM\", \"OK\")\r\n| summarize arg_max(TimeGenerated, *) by ManagedDeviceID_g\r\n| summarize DeviceCount=count(), MissingUpdates=countif(ComputerOEMUpdateStatus == \"Update available from OEM\"), UpToDate=countif(ComputerOEMUpdateStatus == \"OK\") by OEM_s, Model_s, SystemSKU_s\r\n| distinct OEM_s, Model_s, SystemSKU_s, DeviceCount, MissingUpdates, UpToDate\r\n| extend SuccessRate = (UpToDate * 100 / DeviceCount)\r\n| order by OEM_s asc, Model_s asc\r\n",
           "size": 3,
           "title": "Model list from BIOS Table",
           "timeContext": {
@@ -145,9 +145,68 @@
           "resourceType": "microsoft.operationalinsights/workspaces",
           "visualization": "table",
           "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "DeviceCount",
+                "formatter": 0,
+                "numberFormat": {
+                  "unit": 0,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": false,
+                    "maximumFractionDigits": 0
+                  }
+                },
+                "tooltipFormat": {
+                  "tooltip": "Count of devices for this SKU"
+                }
+              },
+              {
+                "columnMatch": "MissingUpdates",
+                "formatter": 0,
+                "numberFormat": {
+                  "unit": 0,
+                  "options": {
+                    "style": "decimal",
+                    "maximumFractionDigits": 0
+                  }
+                },
+                "tooltipFormat": {
+                  "tooltip": "Count of devices not having the latest BIOS Update"
+                }
+              },
+              {
+                "columnMatch": "UpToDate",
+                "formatter": 0,
+                "numberFormat": {
+                  "unit": 0,
+                  "options": {
+                    "style": "decimal",
+                    "maximumFractionDigits": 0
+                  }
+                },
+                "tooltipFormat": {
+                  "tooltip": "Count of devices having the latest BIOS Update"
+                }
+              },
+              {
+                "columnMatch": "SuccessRate",
+                "formatter": 8,
+                "formatOptions": {
+                  "palette": "redGreen"
+                },
+                "numberFormat": {
+                  "unit": 1,
+                  "options": {
+                    "style": "decimal"
+                  }
+                }
+              }
+            ],
+            "filter": true,
             "sortBy": [
               {
-                "itemKey": "OEM_s",
+                "itemKey": "Model_s",
                 "sortOrder": 1
               }
             ],
@@ -168,7 +227,7 @@
           },
           "sortBy": [
             {
-              "itemKey": "OEM_s",
+              "itemKey": "Model_s",
               "sortOrder": 1
             }
           ],
