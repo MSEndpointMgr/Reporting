@@ -11,9 +11,10 @@
     Author:      Jan Ketil Skanke & Maurice Daly
     Contact:     @JankeSkanke @Modaly_IT
     Created:     2020-10-11
-    Updated:     2021-09-08
+    Updated:     2021-12-03
     Version history:
     1.0.0 - (2021-Nov-3) Initial version
+    1.0.1 - (2021-Dec-3) Fixes for Dell SKUs
 .EXAMPLE
 #>
 #Requires -Modules 7Zip4Powershell, Az.Accounts, Az.OperationalInsights
@@ -110,29 +111,35 @@ Invoke-WebRequest -Uri "https://downloads.dell.com/catalog/CatalogPC.cab" -OutFi
 Expand-7Zip -ArchiveFileName (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.cab") -TargetPath $env:TEMP
 [xml]$DellBIOSXML = Get-Content -Path (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.xml")
 foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
-    if (-not([string]::IsNullOrEmpty($Sku))){
-        #$DellBiosXML = Get-XMLData -XMLUrl "https://azurefilesnorway.blob.core.windows.net/dat/CatalogPC.xml"
-        $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent
-        $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Sort-Object -Property VendorVersion -Descending | Select-Object -First 1
-        $CurrentDellBIOSVersion = $DellBIOSLatest.dellVersion
-        [DateTime]$CurrentDellBIOSDate = $DellBIOSLatest.releaseDate
-        #Write-Output "SKU:$($sku),Version:$($BiosLatest.ver),Date:$($BiosLatest.date)"
-        $BIOSInventory = New-Object System.Object
-        $BIOSInventory | Add-Member -MemberType NoteProperty -Name "SKU" -Value "$SKU" -Force   
-        $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMVersion" -Value "$CurrentDellBIOSVersion" -Force   
-        $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMDate" -Value "$CurrentDellBIOSDate" -Force      
-        $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEM" -Value "Dell" -Force  
-        $BIOSJson = $BIOSInventory | ConvertTo-Json
-        #write-output $BIOSJson
-        try {
-            $ResponseBIOSInventory = Send-LogAnalyticsData -customerId $WorkspaceID -sharedKey $SharedKey -body ([System.Text.Encoding]::UTF8.GetBytes($BIOSJson)) -logType $BIOSLogType -ErrorAction Stop
-            Write-Output "BIOS Information injected for SKU $($SKU)"
-        } catch {
-            $ResponseBIOSInventory = "Error Code: $($_.Exception.Response.StatusCode.value__)"
-            $ResponseBIOSMessage = $_.Exception.Message
-            Write-Output "Error $($ResponseBIOSInventory), Message $($ResponseBIOSMessage)"
-        }
-    }      
+    if ([string]::IsNullOrEmpty($Sku)){
+        continue
+    }
+    #$DellBiosXML = Get-XMLData -XMLUrl "https://azurefilesnorway.blob.core.windows.net/dat/CatalogPC.xml"
+    #$DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent
+    $DellBIOSLatest = $DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)} | Sort-Object -Property VendorVersion -Descending | Select-Object -First 1
+    if ($null -eq $DellBIOSLatest) {
+        Write-Output "BIOS Information for SKU $($SKU) not available."
+        continue
+    }
+    
+    $CurrentDellBIOSVersion = $DellBIOSLatest.dellVersion
+    [DateTime]$CurrentDellBIOSDate = $DellBIOSLatest.releaseDate
+    #Write-Output "SKU:$($sku),Version:$($BiosLatest.ver),Date:$($BiosLatest.date)"
+    $BIOSInventory = New-Object System.Object
+    $BIOSInventory | Add-Member -MemberType NoteProperty -Name "SKU" -Value "$SKU" -Force   
+    $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMVersion" -Value "$CurrentDellBIOSVersion" -Force   
+    $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMDate" -Value "$CurrentDellBIOSDate" -Force      
+    $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEM" -Value "Dell" -Force  
+    $BIOSJson = $BIOSInventory | ConvertTo-Json
+    #write-output $BIOSJson
+    try {
+        $ResponseBIOSInventory = Send-LogAnalyticsData -customerId $WorkspaceID -sharedKey $SharedKey -body ([System.Text.Encoding]::UTF8.GetBytes($BIOSJson)) -logType $BIOSLogType -ErrorAction Stop
+        Write-Output "BIOS Information injected for SKU $($SKU)"
+    } catch {
+        $ResponseBIOSInventory = "Error Code: $($_.Exception.Response.StatusCode.value__)"
+        $ResponseBIOSMessage = $_.Exception.Message
+        Write-Output "$($SKU) --> Error $($ResponseBIOSInventory), Message $($ResponseBIOSMessage)"
+    }
 }
 #endregion Dell
 
