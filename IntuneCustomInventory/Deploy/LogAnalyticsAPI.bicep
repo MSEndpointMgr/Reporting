@@ -211,7 +211,7 @@ resource FunctionAppZipDeploy 'Microsoft.Web/sites/extensions@2015-08-01' = {
   parent: FunctionApp
   name: 'ZipDeploy'
   properties: {
-      packageUri: 'https://github.com/MSEndpointMgr/Intune/releases/download/v0.9/LogAnalyticsAPI.zip'
+      packageUri: 'https://github.com/MSEndpointMgr/Reporting/releases/download/1.0/LogAnalyticsAPI.zip'
   }
 }
 
