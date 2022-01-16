@@ -31,7 +31,7 @@ Version history:
 # Define your azure function URL: 
 # Example 'https://<appname>.azurewebsites.net/api/<functioname>'
 
-$AzureFunctionURL = "https://appcwlogrestapi.azurewebsites.net/api/mylogcollectorapi"
+$AzureFunctionURL = ""
 
 # Enable TLS 1.2 support 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
