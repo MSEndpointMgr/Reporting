@@ -188,7 +188,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOAggregatedStatus\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BWOptPercent28Days, DeviceCount\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers)\r\n| sort by BytesFromCDN",
+                          "query": "WUDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BWOptPercent28Days, DeviceCount\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers)\r\n| sort by BytesFromCDN",
                           "size": 3,
                           "showAnalytics": true,
                           "title": "Content Types - Last 30 days",
@@ -213,7 +213,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOStatus \r\n| summarize Count = dcount(ComputerID, 4) by DownloadMode, DownloadModeSrc\r\n| project [\"Download Mode\"] = DownloadMode, [\"Download Source\"] = DownloadModeSrc, [\"Device Count\"] = Count\r\n| order by [\"Device Count\"]",
+                          "query": "WUDOStatus \r\n| summarize arg_max(TimeGenerated, *) by ComputerID\r\n| summarize Count = dcount(ComputerID, 4) by DownloadMode, DownloadModeSrc\r\n| project [\"Download Mode\"] = DownloadMode, [\"Download Source\"] = DownloadModeSrc, [\"Device Count\"] = Count\r\n| order by [\"Device Count\"]",
                           "size": 3,
                           "showAnalytics": true,
                           "title": "Delivery Optimization Mode",
