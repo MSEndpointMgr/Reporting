@@ -69,6 +69,67 @@
           {
             "type": 1,
             "content": {
+              "json": "**Choose a Time Range**\r\nDefault value is data collected in the last 30 days"
+            },
+            "name": "text - 19"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "d55bd357-5be5-4d52-bd68-6b754c455883",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "TimeRange",
+                  "label": "Time Range",
+                  "type": 4,
+                  "value": {
+                    "durationMs": 2592000000
+                  },
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 3600000
+                      },
+                      {
+                        "durationMs": 86400000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2419200000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ],
+                    "allowCustom": true
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  }
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "Time Range"
+          },
+          {
+            "type": 1,
+            "content": {
               "json": "**Windows Update Settings Summary**",
               "style": "info"
             },
@@ -81,6 +142,7 @@
               "query": "WUDevice_Settings_CL\r\n| where \r\nisnotempty( DeviceName_s )\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| summarize Windows10 = countif(ComputerOSVersion_s startswith \"10.0.1\"), Windows11 = countif(ComputerOSVersion_s startswith \"10.0.2\")\r\n| extend OSEC = pack(\"Windows10\", Windows10, \"Windows11\", Windows11)\r\n| mvexpand kind = array OSEC\r\n| project OS = tostring(OSEC[0]), Value = toint(OSEC[1])\r\n\r\n",
               "size": 3,
               "title": "Windows OS Distribution",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart",
@@ -119,6 +181,7 @@
               "query": "WUDevice_Settings_CL\r\n| where \r\nisnotempty( DeviceName_s )\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| summarize dcount(DeviceName_s) by ComputerOSVersion_s",
               "size": 3,
               "title": "Windows Build Distribution",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart"
@@ -136,6 +199,7 @@
               "query": "WUDevice_Settings_CL\r\n| where \r\nisnotempty( DeviceName_s ) and\r\nBranchReadinessLevel_d in (2, 4, 6, 32)\r\n| extend BranchCacheLevel = iff(BranchReadinessLevel_d == 2, \"Dev (Fast)\",\"Other\")\r\n| extend BranchCacheLevel = iff(BranchReadinessLevel_d == 4, \"Beta (Slow)\",BranchCacheLevel)\r\n| extend BranchCacheLevel = iff(BranchReadinessLevel_d == 6, \"Release Preview\",BranchCacheLevel)\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| summarize dcount(DeviceName_s) by BranchCacheLevel",
               "size": 3,
               "title": "Preview Build Targeting",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart"
@@ -161,6 +225,7 @@
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty( DeviceName_s )\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| where (DisableDualScan_d == 1 or DisableDualScan_d == 0)\r\n| summarize EnabledforWU = countif(DisableDualScan_d == 1 and DefaultAUService_s != \"Windows Server Update Service\" and ComputerOSVersion_s != \"10.0.0.22%\"), EnabledforW11 = countif(DisableDualScan_d == 1 and ComputerOSVersion_s == \"10.0.0.22%\"), EnabledforWSUS = countif(DisableDualScan_d == 1 and DefaultAUService_s == \"Windows Server Update Service\" and ComputerOSVersion_s != \"10.0.0.22%\"), NotEnabled = countif(DisableDualScan_d == 0)\r\n| extend Result = pack(\"EnabledforWU\", EnabledforWU, \"EnabledforWSUS\", EnabledforWSUS, \"EnabledforW11\", EnabledforW11, \"NotEnabled\", NotEnabled)\r\n| mvexpand kind = array Result\r\n| project Result = tostring(Result[0]), Value = toint(Result[1])\r\n\r\n\r\n\r\n\r\n\r\n",
               "size": 0,
               "title": "DisableDualScan",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "unstackedbar",
@@ -260,6 +325,7 @@
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty( DeviceName_s )\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| where (NoAutoUpdate_d == 1 or NoAutoUpdate_d == 0)\r\n| summarize Enabled = countif(NoAutoUpdate_d == 1), NotEnabled = countif(NoAutoUpdate_d == 0)\r\n| extend Result = pack(\"Enabled\", Enabled, \"NotEnabled\", NotEnabled)\r\n| mvexpand kind = array Result\r\n| project Result = tostring(Result[0]), Value = toint(Result[1])\r\n\r\n",
               "size": 0,
               "title": "NoAutoUpdate",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "unstackedbar",
@@ -334,6 +400,7 @@
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty( DeviceName_s )\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| where (DoNotConnectToWindowsUpdateInternetLocations_d == 1 or DoNotConnectToWindowsUpdateInternetLocations_d == 0)\r\n| summarize Enabled = countif(DoNotConnectToWindowsUpdateInternetLocations_d == 1), NotEnabled = countif(DoNotConnectToWindowsUpdateInternetLocations_d == 0)\r\n| extend Result = pack(\"Enabled\", Enabled, \"NotEnabled\", NotEnabled)\r\n| mvexpand kind = array Result\r\n| project Result = tostring(Result[0]), Value = toint(Result[1])\r\n\r\n\r\n\r\n\r\n\r\n",
               "size": 0,
               "title": "DoNotConnectToWindowsUpdateInternetLocations",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "unstackedbar",
@@ -408,6 +475,7 @@
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty( DeviceName_s )\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| where (DisableDualScan_d == 1 or DisableDualScan_d == 0)\r\n| extend DisableDualScan = iff(DisableDualScan_d == 1 and DefaultAUService_s == \"Windows Server Update Service\", \"Enabled (WSUS)\", \"Other\")\r\n| extend DisableDualScan = iff(DisableDualScan_d == 1 and DefaultAUService_s != \"Windows Server Update Service\", \"Enabled (WU)\", DisableDualScan)\r\n| extend DisableDualScan = iff(DisableDualScan_d == 1 and ComputerOSVersion_s == \"10.0.0.2%\", \"Enabled (W11)\", DisableDualScan)\r\n| extend DisableDualScan = iff(DisableDualScan_d == 0, \"NotEnabled\", DisableDualScan)\r\n| summarize Devices = count(DeviceName_s) by Setting = DisableDualScan\r\n| order by Setting\r\n\r\n\r\n\r\n\r\n\r\n",
               "size": 3,
               "title": "DisableDualScan",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "table",
@@ -541,6 +609,7 @@
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty( DeviceName_s )\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| where (NoAutoUpdate_d == 1 or NoAutoUpdate_d == 0)\r\n| extend NoAutoUpdate = iff(NoAutoUpdate_d == 1, \"Enabled\", \"Other\")\r\n| extend NoAutoUpdate = iff(NoAutoUpdate_d == 0, \"NotEnabled\", NoAutoUpdate)\r\n| summarize Devices = count(DeviceName_s) by Setting = NoAutoUpdate\r\n| order by Setting\r\n\r\n\r\n\r\n\r\n\r\n",
               "size": 3,
               "title": "NoAutoUpdate",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "table",
@@ -660,6 +729,7 @@
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty( DeviceName_s )\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| where (DoNotConnectToWindowsUpdateInternetLocations_d == 1 or DoNotConnectToWindowsUpdateInternetLocations_d == 0)\r\n| extend DoNotConnectToWindowsUpdateInternetLocations = iff(DoNotConnectToWindowsUpdateInternetLocations_d == 1, \"Enabled\", \"Other\")\r\n| extend DoNotConnectToWindowsUpdateInternetLocations = iff(DoNotConnectToWindowsUpdateInternetLocations_d == 0, \"NotEnabled\", DoNotConnectToWindowsUpdateInternetLocations)\r\n| summarize Devices = count(DeviceName_s) by Setting = DoNotConnectToWindowsUpdateInternetLocations\r\n| order by Setting\r\n\r\n\r\n\r\n\r\n\r\n",
               "size": 3,
               "title": "DoNotConnectToWindowsUpdateInternetLocations",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "table",
@@ -776,6 +846,7 @@
               "size": 0,
               "title": "Devices with \"Service Breaking\" Settings",
               "noDataMessage": "No devices found",
+              "timeContextFromParameter": "TimeRange",
               "showRefreshButton": true,
               "showExportToExcel": true,
               "exportToExcelOptions": "all",
@@ -956,6 +1027,7 @@
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty( DeviceName_s ) and\r\n(AutoRestartDeadlinePeriodInDays_d != 0 or\r\nAutoRestartNotificationSchedule_d != 0 or\r\nAutoInstallMinorUpdates_d != 0 or\r\nAutoRestartDeadlinePeriodInDays_d != 0 or\r\nAutoRestartNotificationSchedule_d != 0 or\r\nAutoRestartRequiredNotificationDismissal_d != 0 or\r\nBranchReadinessLevel_d != 0 or\r\nEnableFeaturedSoftware_d != 0 or\r\nEngagedRestartDeadline_d != 0 or\r\nEngagedRestartSnoozeSchedule_d != 0 or\r\nEngagedRestartTransitionSchedule_d != 0 or\r\nIncludeRecommendedUpdates_d != 0 or\r\nNoAUAsDefaultShutdownOption_d != 0 or\r\nNoAUShutdownOption_d != 0 or\r\nNoAutoRebootWithLoggedOnUsers_d != 0 or\r\nPauseFeatureUpdatesStartTime_d != 0 or\r\nPauseQualityUpdatesStartTime_d != 0 or\r\nRebootRelaunchTimeout_d != 0 or\r\nRebootRelaunchTimeoutEnabled_d != 0 or\r\nRebootWarningTimeout_d != 0 or\r\nRebootWarningTimeoutEnabled_d != 0 or\r\nRescheduleWaitTime_d != 0 or\r\nRescheduleWaitTimeEnabled_d != 0 or\r\nScheduleImminentRestartWarning_d != 0 or\r\nScheduleRestartWarning_d != 0 or\r\nSetAutoRestartDeadline_d != 0 or\r\nSetAutoRestartNotificationConfig_d != 0 or\r\nSetAutoRestartNotificationDisable_d != 0 or\r\nSetAutoRestartRequiredNotificationDismissal_d != 0 or\r\nSetEDURestart_d != 0 or\r\nSetEngagedRestartTransitionSchedule_d != 0 or\r\nSetRestartWarningSchd_d != 0)\r\n| summarize arg_max(TimeGenerated,*) by DeviceName_s\r\n| project\r\nDeviceName_s,\r\nTimeGenerated,\r\nComputerOSVersion_s,\r\nDefaultAUService_s,\r\nAutoInstallMinorUpdates_d,\r\nAutoRestartDeadlinePeriodInDays_d,\r\nAutoRestartNotificationSchedule_d,\r\nAutoRestartRequiredNotificationDismissal_d,\r\nBranchReadinessLevel_d,\r\nEnableFeaturedSoftware_d,\r\nEngagedRestartDeadline_d,\r\nEngagedRestartSnoozeSchedule_d,\r\nEngagedRestartTransitionSchedule_d,\r\nIncludeRecommendedUpdates_d,\r\nNoAUAsDefaultShutdownOption_d,\r\nNoAUShutdownOption_d,\r\nNoAutoRebootWithLoggedOnUsers_d,\r\nPauseFeatureUpdatesStartTime_d,\r\nPauseQualityUpdatesStartTime_d,\r\nRebootRelaunchTimeout_d,\r\nRebootRelaunchTimeoutEnabled_d,\r\nRebootWarningTimeout_d,\r\nRebootWarningTimeoutEnabled_d,\r\nRescheduleWaitTime_d,\r\nRescheduleWaitTimeEnabled_d,\r\nScheduleImminentRestartWarning_d,\r\nScheduleRestartWarning_d,\r\nSetAutoRestartDeadline_d,\r\nSetAutoRestartNotificationConfig_d,\r\nSetAutoRestartNotificationDisable_d,\r\nSetAutoRestartRequiredNotificationDismissal_d,\r\nSetEDURestart_d,\r\nSetEngagedRestartTransitionSchedule_d,\r\nSetRestartWarningSchd_d",
               "size": 0,
               "title": "Windows Update Device Settings (Devices with Issues)",
+              "timeContextFromParameter": "TimeRange",
               "showRefreshButton": true,
               "showExportToExcel": true,
               "exportToExcelOptions": "all",
@@ -1976,6 +2048,7 @@
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty( DeviceName_s ) and\r\n(DeferFeatureUpdates_d != 0 or\r\nDeferFeatureUpdatesPeriodInDays_d != 0 or\r\nDeferQualityUpdates_d != 0 or\r\nDeferQualityUpdatesPeriodInDays_d != 0 or\r\nElevateNonAdmins_d != 0)\r\n| summarize arg_max(TimeGenerated,*) by DeviceName_s\r\n| project\r\nDeviceName_s,\r\nTimeGenerated,\r\nComputerOSVersion_s,\r\nDefaultAUService_s,\r\nDeferFeatureUpdates_d,\r\nDeferFeatureUpdatesPeriodInDays_d,\r\nDeferQualityUpdates_d,\r\nDeferQualityUpdatesPeriodInDays_d,\r\nElevateNonAdmins_d",
               "size": 0,
               "title": "Windows Update Device Settings (Devices with Settings that have no impact)",
+              "timeContextFromParameter": "TimeRange",
               "showRefreshButton": true,
               "showExportToExcel": true,
               "exportToExcelOptions": "all",
@@ -2977,12 +3050,74 @@
             "name": "text - 0"
           },
           {
+            "type": 1,
+            "content": {
+              "json": "**Choose a Time Range**\r\nDefault value is data collected in the last 30 days"
+            },
+            "name": "text - 4"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "cc263011-f09c-4b84-be4c-4007edb5f69c",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "TimeRange",
+                  "label": "Time Range",
+                  "type": 4,
+                  "value": {
+                    "durationMs": 2592000000
+                  },
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 3600000
+                      },
+                      {
+                        "durationMs": 86400000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2419200000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ],
+                    "allowCustom": true
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  }
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 5"
+          },
+          {
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty (DeviceName_s) and\r\nCoMgmtWorkload_b == true and\r\nCoMgmtValue_d > 0\r\n| summarize arg_max(TimeGenerated,*) by DeviceName_s\r\n| summarize DeviceCount = count(DeviceName_s) by CoMgmtValue_d\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 17, \"[Windows Update]\", \"[Other (No WU Workload)]\")\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 19, \"[Windows Update, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 21, \"[Windows Update, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 23, \"[Windows Update, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 25, \"[Windows Update, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 27, \"[Windows Update, Compliance, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 29, \"[Windows Update, Resource Access, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 31, \"[Windows Update, Compliance, Resource Access, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 49, \"[Windows Update, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 51, \"[Windows Update, Compliance, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 55, \"[Windows Update, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 59, \"[Windows Update, Compliance, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 61, \"[Windows Update, Resource Access, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 63, \"[Windows Update, Compliance, Resource Access, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 81, \"[Windows Update, Client Apps]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 83, \"[Windows Update, Compliance, Client Apps]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 85, \"[Windows Update, Client Apps, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 87, \"[Windows Update, Compliance, Client Apps, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 89, \"[Windows Update, Client Apps, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 91, \"[Windows Update, Client Apps, Compliance, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 93, \"[Windows Update, Client Apps, Resource Access, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 95, \"[Windows Update, Client Apps, Compliance, Resource Access, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 113, \"[Windows Update, Client Apps, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 115, \"[Windows Update, Client Apps, Compliance, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 117, \"[Windows Update, Client Apps, Resource Access, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 119, \"[Windows Update, Client Apps, Compliance, Resource Access, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 121, \"[Windows Update, Client Apps, Device Configuration, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 123, \"[Windows Update, Client Apps, Compliance, Device Configuration, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 125, \"[Windows Update, Client Apps, Resource Access, Device Configuration, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 127, \"[Windows Update, Client Apps, Compliance, Resource Access, Device Configuration, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 145, \"[Windows Update, OC2R]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 147, \"[Windows Update, OC2R, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 149, \"[Windows Update, OC2R, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 151, \"[Windows Update, OC2R, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 153, \"[Windows Update, OC2R, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 155, \"[Windows Update, OC2R, Device Configuration, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 157, \"[Windows Update, OC2R, Device Configuration, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 159, \"[Windows Update, OC2R, Device Configuration, Compliance, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 177, \"[Windows Update, OC2R, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 179, \"[Windows Update, OC2R, Endpoint Protection, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 181, \"[Windows Update, OC2R, Endpoint Protection, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 183, \"[Windows Update, OC2R, Endpoint Protection, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 185, \"[Windows Update, OC2R, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 187, \"[Windows Update, OC2R, Endpoint Protection, Compliance, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 189, \"[Windows Update, OC2R, Endpoint Protection, Device Configuration, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 191, \"[Windows Update, OC2R, Endpoint Protection, Device Configuration, Compliance, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 209, \"[Windows Update, OC2R, Client Apps]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 211, \"[Windows Update, OC2R, Client Apps, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 213, \"[Windows Update, OC2R, Client Apps, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 215, \"[Windows Update, OC2R, Client Apps, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 217, \"[Windows Update, OC2R, Client Apps, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 219, \"[Windows Update, OC2R, Client Apps, Device Configuration, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 221, \"[Windows Update, OC2R, Client Apps, Device Configuration, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 223, \"[Windows Update, OC2R, Client Apps, Device Configuration, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 241, \"[Windows Update, OC2R, Client Apps, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 243, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 245, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 247, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 249, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 251, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Device Configuration, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 253, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Device Configuration, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 255, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Device Configuration, Resource Access, Compliance]\", CoMgmtValue)\r\n| project DeviceCount, Capability = CoMgmtValue_d, Workload = CoMgmtValue\r\n| order by DeviceCount desc",
               "size": 3,
               "title": "Workload Summary",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "table"
@@ -2997,6 +3132,7 @@
               "size": 0,
               "aggregation": 5,
               "title": "Workload Distribution",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "barchart",
@@ -3019,6 +3155,7 @@
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty (DeviceName_s) and\r\nCoMgmtValue_d != 0\r\n| summarize arg_max(TimeGenerated,*) by DeviceName_s\r\n\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 17, \"[Windows Update]\", \"Other\")\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 19, \"[Windows Update, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 21, \"[Windows Update, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 23, \"[Windows Update, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 25, \"[Windows Update, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 27, \"[Windows Update, Compliance, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 29, \"[Windows Update, Resource Access, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 31, \"[Windows Update, Compliance, Resource Access, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 49, \"[Windows Update, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 51, \"[Windows Update, Compliance, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 55, \"[Windows Update, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 59, \"[Windows Update, Compliance, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 61, \"[Windows Update, Resource Access, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 63, \"[Windows Update, Compliance, Resource Access, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 81, \"[Windows Update, Client Apps]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 83, \"[Windows Update, Compliance, Client Apps]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 85, \"[Windows Update, Client Apps, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 87, \"[Windows Update, Compliance, Client Apps, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 89, \"[Windows Update, Client Apps, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 91, \"[Windows Update, Client Apps, Compliance, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 93, \"[Windows Update, Client Apps, Resource Access, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 95, \"[Windows Update, Client Apps, Compliance, Resource Access, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 113, \"[Windows Update, Client Apps, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 115, \"[Windows Update, Client Apps, Compliance, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 117, \"[Windows Update, Client Apps, Resource Access, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 119, \"[Windows Update, Client Apps, Compliance, Resource Access, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 121, \"[Windows Update, Client Apps, Device Configuration, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 123, \"[Windows Update, Client Apps, Compliance, Device Configuration, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 125, \"[Windows Update, Client Apps, Resource Access, Device Configuration, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 127, \"[Windows Update, Client Apps, Compliance, Resource Access, Device Configuration, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 145, \"[Windows Update, OC2R]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 147, \"[Windows Update, OC2R, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 149, \"[Windows Update, OC2R, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 151, \"[Windows Update, OC2R, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 153, \"[Windows Update, OC2R, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 155, \"[Windows Update, OC2R, Device Configuration, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 157, \"[Windows Update, OC2R, Device Configuration, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 159, \"[Windows Update, OC2R, Device Configuration, Compliance, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 177, \"[Windows Update, OC2R, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 179, \"[Windows Update, OC2R, Endpoint Protection, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 181, \"[Windows Update, OC2R, Endpoint Protection, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 183, \"[Windows Update, OC2R, Endpoint Protection, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 185, \"[Windows Update, OC2R, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 187, \"[Windows Update, OC2R, Endpoint Protection, Compliance, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 189, \"[Windows Update, OC2R, Endpoint Protection, Device Configuration, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 191, \"[Windows Update, OC2R, Endpoint Protection, Device Configuration, Compliance, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 209, \"[Windows Update, OC2R, Client Apps]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 211, \"[Windows Update, OC2R, Client Apps, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 213, \"[Windows Update, OC2R, Client Apps, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 215, \"[Windows Update, OC2R, Client Apps, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 217, \"[Windows Update, OC2R, Client Apps, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 219, \"[Windows Update, OC2R, Client Apps, Device Configuration, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 221, \"[Windows Update, OC2R, Client Apps, Device Configuration, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 223, \"[Windows Update, OC2R, Client Apps, Device Configuration, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 241, \"[Windows Update, OC2R, Client Apps, Endpoint Protection]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 243, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 245, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 247, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Resource Access, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 249, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Device Configuration]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 251, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Device Configuration, Compliance]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 253, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Device Configuration, Resource Access]\", CoMgmtValue)\r\n| extend CoMgmtValue = iff(CoMgmtValue_d == 255, \"[Windows Update, OC2R, Client Apps, Endpoint Protection, Device Configuration, Resource Access, Compliance]\", CoMgmtValue)\r\n| project\r\nDeviceName_s,\r\nTimeGenerated,\r\nDefaultAUService_s,\r\nCoMgmtWorkload_b,\r\nCoMgmtValue_d,\r\nCoMgmtValue\r\n| where CoMgmtValue != \"Other\"",
               "size": 0,
               "title": "Device Detail",
+              "timeContextFromParameter": "TimeRange",
               "showExportToExcel": true,
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
@@ -3121,12 +3258,71 @@
             "name": "text - 2"
           },
           {
+            "type": 1,
+            "content": {
+              "json": "**Choose a Time Range**\r\nDefault value is data collected in the last 30 days"
+            },
+            "name": "text - 6"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "6a1d9f0c-2774-4dae-b122-236aeabfe5c8",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "TimeRange",
+                  "label": "Time Range",
+                  "type": 4,
+                  "value": {
+                    "durationMs": 2592000000
+                  },
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 86400000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2419200000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ],
+                    "allowCustom": true
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  }
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 7"
+          },
+          {
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
               "query": "WUDevice_Settings_CL\r\n| where \r\nisnotempty( DeviceName_s )\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| summarize dcount(DeviceName_s) by DefaultAUService_s\r\n",
               "size": 3,
               "title": "Update Source",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart"
@@ -3144,6 +3340,7 @@
               "query": "WUDevice_Settings_CL\r\n| where \r\nisnotempty( DeviceName_s ) and \r\nWUServer_s != \"NotSet\" and\r\nisnotempty(WUServer_s)\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| summarize dcount(DeviceName_s) by WUServer_s\r\n",
               "size": 3,
               "title": "Windows Update Server",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart"
@@ -3161,6 +3358,7 @@
               "query": "WUDevice_Settings_CL\r\n| where \r\nisnotempty( DeviceName_s ) and \r\nWUStatusServer_s != \"NotSet\" and\r\nisnotempty(WUStatusServer_s)\r\n| summarize arg_max(TimeGenerated, *) by DeviceName_s\r\n| summarize dcount(DeviceName_s) by WUStatusServer_s\r\n",
               "size": 3,
               "title": "Windows Update Status Server",
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart",
@@ -3186,6 +3384,7 @@
               "query": "WUDevice_Settings_CL\r\n| where\r\nisnotempty(DeviceName_s) and DefaultAUService_s == \"Windows Server Update Service\"\r\n| summarize arg_max(TimeGenerated,*) by DeviceName_s\r\n| project\r\nDeviceName_s,\r\nTimeGenerated,\r\nDefaultAUService_s,\r\nWUServer_s,\r\nWUStatusServer_s,\r\nSourceForDriverUpdates = SetPolicyDrivenUpdateSourceForDriverUpdates_d,\r\nSourceForFeatureUpdates = SetPolicyDrivenUpdateSourceForFeatureUpdates_d,\r\nSourceForOtherUpdates = SetPolicyDrivenUpdateSourceForOtherUpdates_d,\r\nSourceForQualityUpdates = SetPolicyDrivenUpdateSourceForQualityUpdates_d",
               "size": 0,
               "title": "Update Soure Information",
+              "timeContextFromParameter": "TimeRange",
               "showExportToExcel": true,
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",

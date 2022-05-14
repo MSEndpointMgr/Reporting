@@ -24,7 +24,7 @@
 $ScriptVersion = "PR004"
 
 #FunctionAppURI for Log Upload
-$AzureFunctionURL = "<<my-functionapp-name-goes-here>>" #e.g. "https://myfunctionappnamegoeshere.azurewebsites.net/api/LogCollectorAPI"
+$AzureFunctionURL = "<<my-functionapp-url-goes-here>>" #e.g. "https://myfunctionappnamegoeshere.azurewebsites.net/api/LogCollectorAPI"
 
 #Custom Log Name
 $CustomLogName = "WUDevice_Settings"
