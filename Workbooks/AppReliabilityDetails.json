@@ -1,0 +1,546 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "94daf261-d2b7-405d-88ca-fed40dee1e64",
+            "version": "KqlParameterItem/1.0",
+            "name": "Application",
+            "type": 1,
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "value": ""
+          },
+          {
+            "id": "eed46422-3d7b-43cd-acae-b17f547d6e89",
+            "version": "KqlParameterItem/1.0",
+            "name": "Publisher",
+            "type": 1,
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "value": ""
+          },
+          {
+            "id": "b8e27e30-f99c-4994-b78e-4f19b86b8efb",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2419200000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ]
+            },
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "value": {
+              "durationMs": 1209600000
+            }
+          },
+          {
+            "id": "cddf82a4-c62a-45dc-b7a2-afd1443565fe",
+            "version": "KqlParameterItem/1.0",
+            "name": "FirstSeen",
+            "label": "First Seen",
+            "type": 1,
+            "query": "AppReliability_CL \r\n| summarize arg_min(EventGenerated_s, *) by Application_s\r\n| order by todatetime(EventGenerated_s) asc\r\n| take 1\r\n| project TimeGenerated",
+            "isHiddenWhenLocked": true,
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "value": ""
+          },
+          {
+            "id": "37dcfeb1-f5c3-48f5-82b0-a102ab0cebd0",
+            "version": "KqlParameterItem/1.0",
+            "name": "LastSeen",
+            "label": "Last Seen",
+            "type": 1,
+            "query": "AppReliability_CL \r\n| summarize arg_max(EventGenerated_s, *) by Application_s\r\n| order by todatetime(EventGenerated_s) desc\r\n| take 1\r\n| project TimeGenerated",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 1209600000
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "value": ""
+          },
+          {
+            "id": "8ac503ed-905d-40e1-9d04-a4ee770bfce9",
+            "version": "KqlParameterItem/1.0",
+            "name": "RuleType",
+            "type": 1,
+            "value": "",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 5184000000
+            },
+            "timeContextFromParameter": "TimeRange"
+          },
+          {
+            "id": "d5ec973e-fc2b-416c-8ed5-bf9bef76f0f8",
+            "version": "KqlParameterItem/1.0",
+            "name": "AdditionalApps",
+            "type": 1,
+            "description": "This parameter is used to display additional app reliability events based on manufacturer",
+            "query": "AppReliability_CL  \r\n| where ApplicationPublisher_s contains \"{Publisher}\" and isnotempty(ApplicationPublisher_s) and Application_s != \"{Application}\"\r\n| summarize count()\r\n| project count_",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "value": ""
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters - 1"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Application Reliability Details - {Application}\n\n---\n\n<table class=\"tg\">\n<thead>\n  <tr>\n    <th class=\"tg-0lax\" colspan=\"2\">{RuleType} Information</th>\n  </tr>\n</thead>\n<tbody>\n  <tr>\n    <td class=\"tg-0lax\"><strong>Application</strong></td>\n    <td class=\"tg-0lax\">{Application}</td>\n  <tr>\n    <td class=\"tg-0lax\"><strong>Publisher</strong></td>\n    <td class=\"tg-0lax\">{Publisher}</td>\n  </tr>\n    <tr>\n    <td class=\"tg-0lax\"><strong>First Event</strong></td>\n    <td class=\"tg-0lax\">{FirstSeen}</td>\n  </tr>\n    </tr>\n    <tr>\n    <td class=\"tg-0lax\"><strong>Last Event</strong></td>\n    <td class=\"tg-0lax\">{LastSeen}</td>\n  </tr>\n</tbody>\n</table>\n\n\nBelow are detailed descriptions on the {Application} application reliability events detected across your environment.\n\n---\n"
+      },
+      "name": "text - 2"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppReliability_CL \r\n| where Application_s == \"{Application}\"\r\n| summarize arg_max(todatetime(EventGenerated_s), *) by ManagedDeviceID_g\r\n| make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by EventType_s",
+        "size": 1,
+        "title": "{Application} Reliability Events - {TimeRange}",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "areachart",
+        "chartSettings": {
+          "seriesLabelSettings": [
+            {
+              "seriesName": "Application Error",
+              "color": "red"
+            },
+            {
+              "seriesName": "Application Hang",
+              "color": "orange"
+            }
+          ]
+        }
+      },
+      "name": "{Application} Reliability Events - {TimeRange}"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppReliability_CL  \r\n| where Application_s == \"{Application}\"\r\n| summarize arg_max(TimeGenerated, *) by ManagedDeviceID_g, ApplicationVersion_s\r\n| summarize dcount(ManagedDeviceID_g) by ApplicationVersion_s",
+        "size": 3,
+        "title": "{Application} - Version Count",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "piechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "RuleType",
+        "comparison": "isNotEqualTo",
+        "value": "Script"
+      },
+      "name": "{RuleType_s} - Version Count"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Faulting Modules\r\n\r\nBelow are a list of modules which were assoicated with the application crash / hang events",
+        "style": "info"
+      },
+      "name": "text - 9"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppReliability_CL  \r\n| where Application_s contains \"{Application}\" and isnotempty(Application_s) and isnotempty(EventGenerated_s) and isnotempty(FaultingModule_s)\r\n| summarize arg_max(todatetime(EventGenerated_s), *) by Application_s, FaultingModule_s, FaultingModulePath_s\r\n| summarize dcount(FaultingModule_s) by Application_s, FaultingModule_s, FaultingModulePath_s\r\n| project-away Application_s\r\n| order by dcount_FaultingModule_s desc",
+        "size": 3,
+        "showAnalytics": true,
+        "title": "{Application} - Faulting Module Locations",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "dcount_FaultingModule_s",
+              "formatter": 4,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            },
+            {
+              "columnMatch": "EventType_s",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Audited",
+                    "representation": "1",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Denied",
+                    "representation": "2",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "success",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            }
+          ],
+          "rowLimit": 50,
+          "labelSettings": [
+            {
+              "columnId": "FaultingModule_s",
+              "label": "Faulting Module"
+            },
+            {
+              "columnId": "FaultingModulePath_s",
+              "label": "Module Path"
+            },
+            {
+              "columnId": "dcount_FaultingModule_s",
+              "label": "Count"
+            }
+          ]
+        },
+        "chartSettings": {
+          "seriesLabelSettings": [
+            {
+              "seriesName": "Audited",
+              "color": "green"
+            },
+            {
+              "seriesName": "Denied",
+              "color": "red"
+            }
+          ]
+        }
+      },
+      "name": "Application - Faulting Module Locations"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Impacted Computers\r\n\r\nBelow is a list of computers with reliability events for the selected application ({$Application})",
+        "style": "info"
+      },
+      "name": "Computers"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppReliability_CL  \r\n| where Application_s contains \"{Application}\" and isnotempty(Application_s) and isnotempty(EventGenerated_s) \r\n| summarize arg_max(todatetime(EventGenerated_s), *) by ManagedDeviceID_g, EventType_s\r\n| project EventType_s, ComputerName_s, EventGenerated_s\r\n| order by todatetime(EventGenerated_s) desc\r\n\r\n\r\n",
+        "size": 1,
+        "showAnalytics": true,
+        "title": "{Application} - Computer Incidents - Top 1000 ",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "EventType_s",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "contains",
+                    "thresholdValue": "Error",
+                    "representation": "3",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "contains",
+                    "thresholdValue": "Hang",
+                    "representation": "2",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "success",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            }
+          ],
+          "rowLimit": 1000,
+          "hierarchySettings": {
+            "treeType": 1,
+            "groupBy": [
+              "EventType_s"
+            ],
+            "expandTopLevel": false
+          },
+          "sortBy": [
+            {
+              "itemKey": "EventGenerated_s",
+              "sortOrder": 1
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "EventType_s",
+              "label": "Event Type"
+            },
+            {
+              "columnId": "ComputerName_s",
+              "label": "Computer Name"
+            },
+            {
+              "columnId": "EventGenerated_s",
+              "label": "Event Generated"
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "EventGenerated_s",
+            "sortOrder": 1
+          }
+        ]
+      },
+      "name": "{Application} - Computer Incidents - Top 1000 "
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "----"
+      },
+      "name": "Line Break"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "## {Publisher} Additional Events\r\n\r\nBelow are a list of additional applications from {Publisher} which have reliabiltiy detection events regsitered against them:",
+              "style": "warning"
+            },
+            "name": "text - 7"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AppReliability_CL  \r\n| where ApplicationPublisher_s contains \"{Publisher}\" and isnotempty(ApplicationPublisher_s) and Application_s != \"{Application}\"\r\n| summarize dcount(Computer) by Application_s, EventType_s, ApplicationPublisher_s\r\n| order by dcount_Computer desc",
+              "size": 3,
+              "title": "{Publisher} - Additional Application Incidents",
+              "noDataMessage": "No additional AppLocker events detected from this publisher",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "table",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "EventType_s",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Hang",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Error",
+                          "representation": "3",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "dcount_Computer",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "greenRed"
+                    }
+                  },
+                  {
+                    "columnMatch": "FullPublisherName_BinaryName_s",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "linkColumn": "FullPublisherName_BinaryName_s",
+                      "linkTarget": "WorkbookTemplate",
+                      "linkIsContextBlade": true,
+                      "workbookContext": {
+                        "componentIdSource": "parameter",
+                        "componentId": "DetailsWorkbook",
+                        "resourceIdsSource": "parameter",
+                        "resourceIds": "LogWorkspace",
+                        "templateIdSource": "parameter",
+                        "templateId": "DetailsWorkbook",
+                        "typeSource": "workbook",
+                        "gallerySource": "workbook",
+                        "locationSource": "default",
+                        "passSpecificParams": true,
+                        "templateParameters": [
+                          {
+                            "name": "Application",
+                            "source": "column",
+                            "value": "FullPublisherName_BinaryName_s"
+                          },
+                          {
+                            "name": "Publisher",
+                            "source": "parameter",
+                            "value": "Publisher"
+                          },
+                          {
+                            "name": "TimeRange",
+                            "source": "parameter",
+                            "value": "TimeRange"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "EventType_s",
+                    "label": "Action"
+                  },
+                  {
+                    "columnId": "dcount_Computer",
+                    "label": "Devices"
+                  }
+                ]
+              },
+              "sortBy": [],
+              "tileSettings": {
+                "showBorder": false,
+                "titleContent": {
+                  "columnMatch": "FullPublisherName_ProductName_s",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "count_",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "auto"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              },
+              "chartSettings": {
+                "xAxis": "FullPublisherName_BinaryName_s",
+                "group": "EventType_s",
+                "createOtherGroup": null,
+                "showMetrics": false
+              }
+            },
+            "conditionalVisibilities": [
+              {
+                "parameterName": "Publisher",
+                "comparison": "isNotEqualTo",
+                "value": "Unsigned"
+              },
+              {
+                "parameterName": "RuleType",
+                "comparison": "isNotEqualTo",
+                "value": "Script"
+              }
+            ],
+            "name": "Publisher - Additional Application Incidents"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "AdditionalApps",
+        "comparison": "isNotEqualTo",
+        "value": ""
+      },
+      "name": "Additional Apps"
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

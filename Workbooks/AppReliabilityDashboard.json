@@ -1,0 +1,700 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "<img src=\"YOUR LOGO HERE" height=\"100\")>\r\n"
+      },
+      "name": "text - 5"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "# Application Reliability Report\n---\n\nThe purpose of this dashboard is to provide similar functionality to the Windows Reliability Monitor, across all Windows devices in Intune / Configuration Manager.\n\n1. Application hang and error events\n2. Summary of top offending applications\n\n\n**Note:** Figures are updated on a 24 hour cycle."
+      },
+      "customWidth": "60",
+      "name": "text - 2"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppReliability_CL \r\n| summarize arg_max(TimeGenerated, *)\r\n| project Type,TimeGenerated\r\n| sort by TimeGenerated asc",
+        "size": 3,
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "40",
+      "name": "query - 4"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "e9b4aa93-ffd7-47a5-a1a7-485141b8f912",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "value": {
+              "durationMs": 604800000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 300000
+                },
+                {
+                  "durationMs": 900000
+                },
+                {
+                  "durationMs": 1800000
+                },
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2419200000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "timeContext": {
+              "durationMs": 86400000
+            }
+          },
+          {
+            "id": "7031244f-c2fe-4104-ae5b-43992a6513e3",
+            "version": "KqlParameterItem/1.0",
+            "name": "LogWorkspace",
+            "type": 1,
+            "query": "resources\r\n| where  name contains \"log-cloudwaymonitoring\" and type == \"microsoft.operationalinsights/workspaces\"\r\n| project id",
+            "isHiddenWhenLocked": true,
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "c489aa2e-9d7b-4283-a935-ffeadc4b0a70",
+            "version": "KqlParameterItem/1.0",
+            "name": "DetailsWorkbook",
+            "type": 1,
+            "query": "resources\r\n| where type == \"microsoft.insights/workbooks\"\r\n| where properties.displayName has 'Application Reliability - App Details'\r\n| extend path = trim('[]', id)\r\n| project path",
+            "isHiddenWhenLocked": true,
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          }
+        ],
+        "style": "pills",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources"
+      },
+      "name": "Workbook Parameters"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppReliability_CL  \n| where isnotempty(EventGenerated_s)\n| summarize arg_max(EventGenerated_s, *) by ManagedDeviceID_g, Application_s, EventType_s \n| make-series Trend = count() default = 0 on todatetime(EventGenerated_s) from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by Application_s",
+        "size": 1,
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "timechart"
+      },
+      "name": "Reliability Events - By Application"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppReliability_CL  \n| where isnotempty(EventGenerated_s)\n| summarize arg_max(EventGenerated_s, *) by ManagedDeviceID_g, Application_s, EventType_s \n| make-series Trend = count() default = 0 on todatetime(EventGenerated_s) from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by EventType_s",
+        "size": 1,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "areachart",
+        "chartSettings": {
+          "showLegend": true,
+          "seriesLabelSettings": [
+            {
+              "seriesName": "Application Error",
+              "color": "red"
+            },
+            {
+              "seriesName": "Application Hang",
+              "color": "orange"
+            }
+          ]
+        }
+      },
+      "name": "Reliability Events Over Time"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AppReliability_CL \r\n| where isnotempty(EventGenerated_s) and EventType_s == \"Application Error\"\r\n| summarize arg_max(TimeGenerated, *) by ManagedDeviceID_g, Application_s \r\n| project EventGenerated_s, ComputerName_s, EventType_s, Application_s, ApplicationPublisher_s, ApplicationPath_s, ApplicationVersion_s\r\n| order by todatetime(EventGenerated_s) desc, EventType_s desc",
+        "size": 0,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "EventType_s",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "contains",
+                    "thresholdValue": "Error",
+                    "representation": "3",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "contains",
+                    "thresholdValue": "Hang",
+                    "representation": "2",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "success",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            },
+            {
+              "columnMatch": "Application_s",
+              "formatter": 1,
+              "formatOptions": {
+                "linkTarget": "WorkbookTemplate",
+                "linkIsContextBlade": true,
+                "workbookContext": {
+                  "componentIdSource": "parameter",
+                  "componentId": "DetailsWorkbook",
+                  "resourceIdsSource": "parameter",
+                  "resourceIds": "LogWorkspace",
+                  "templateIdSource": "parameter",
+                  "templateId": "DetailsWorkbook",
+                  "typeSource": "workbook",
+                  "gallerySource": "workbook",
+                  "locationSource": "default",
+                  "passSpecificParams": true,
+                  "templateParameters": [
+                    {
+                      "name": "Application",
+                      "source": "column",
+                      "value": "Application_s"
+                    },
+                    {
+                      "name": "TimeRange",
+                      "source": "parameter",
+                      "value": "TimeRange"
+                    },
+                    {
+                      "name": "Publisher",
+                      "source": "column",
+                      "value": "ApplicationPublisher_s"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "ApplicationVersion_s",
+              "sortOrder": 2
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "ApplicationVersion_s",
+            "sortOrder": 2
+          }
+        ]
+      },
+      "name": "Application Reliability Details"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "-------------------"
+      },
+      "name": "text - 9"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "## Application Error Events\r\n\r\nBelow are a list of application hang Error across your Windows 10/11 infrastructure. Application errors can occur due to compatibility issues, and you should pay attention to the faulting modules where present.",
+              "style": "error"
+            },
+            "name": "text - 10"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AppReliability_CL \r\n| where isnotempty(EventGenerated_s) and EventType_s == \"Application Error\"\r\n| summarize arg_max(EventGenerated_s, *) by ManagedDeviceID_g, Application_s, EventType_s \r\n| project EventGenerated_s, ComputerName_s, ManagedDeviceID_g, EventType_s, Application_s, ApplicationPublisher_s, ApplicationVersion_s\r\n| summarize dcount(ManagedDeviceID_g) by EventType_s, Application_s, ApplicationPublisher_s, ApplicationVersion_s\r\n| order by dcount_ManagedDeviceID_g desc",
+              "size": 0,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "EventType_s",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Error",
+                          "representation": "3",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Hang",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "Application_s",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "linkTarget": "WorkbookTemplate",
+                      "linkIsContextBlade": true,
+                      "workbookContext": {
+                        "componentIdSource": "parameter",
+                        "componentId": "DetailsWorkbook",
+                        "resourceIdsSource": "parameter",
+                        "resourceIds": "LogWorkspace",
+                        "templateIdSource": "parameter",
+                        "templateId": "DetailsWorkbook",
+                        "typeSource": "workbook",
+                        "gallerySource": "workbook",
+                        "locationSource": "default",
+                        "passSpecificParams": true,
+                        "templateParameters": [
+                          {
+                            "name": "Application",
+                            "source": "column",
+                            "value": "Application_s"
+                          },
+                          {
+                            "name": "TimeRange",
+                            "source": "parameter",
+                            "value": "TimeRange"
+                          },
+                          {
+                            "name": "Publisher",
+                            "source": "column",
+                            "value": "ApplicationPublisher_s"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "columnMatch": "dcount_ManagedDeviceID_g",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "red",
+                      "customColumnWidthSetting": "200px"
+                    }
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "EventType_s",
+                    "label": "Event"
+                  },
+                  {
+                    "columnId": "Application_s",
+                    "label": "Application"
+                  },
+                  {
+                    "columnId": "ApplicationVersion_s",
+                    "label": "Version"
+                  },
+                  {
+                    "columnId": "dcount_ManagedDeviceID_g",
+                    "label": "Devices Impacted"
+                  }
+                ]
+              },
+              "sortBy": []
+            },
+            "name": "Application Reliability - Application Error Events"
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "## Application Hang Events\r\n\r\nBelow are a list of application hang events across your Windows 10/11 infrastructure. Where updated and patched versions of applications impacted are available, you should consider a phased test and rollout process, to ensure stability and improve the end-user experience.",
+              "style": "warning"
+            },
+            "name": "text - 9"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AppReliability_CL \r\n| where isnotempty(EventGenerated_s) and EventType_s == \"Application Hang\"\r\n| summarize arg_max(TimeGenerated, *) by ManagedDeviceID_g, Application_s, EventType_s \r\n| project EventGenerated_s, ComputerName_s, ManagedDeviceID_g, EventType_s, Application_s, ApplicationPublisher_s, ApplicationVersion_s\r\n| summarize dcount(ManagedDeviceID_g) by EventType_s, Application_s, ApplicationPublisher_s, ApplicationVersion_s\r\n| order by dcount_ManagedDeviceID_g desc",
+              "size": 0,
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "EventType_s",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Error",
+                          "representation": "3",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Hang",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "Application_s",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "linkTarget": "WorkbookTemplate",
+                      "linkIsContextBlade": true,
+                      "workbookContext": {
+                        "componentIdSource": "parameter",
+                        "componentId": "DetailsWorkbook",
+                        "resourceIdsSource": "parameter",
+                        "resourceIds": "LogWorkspace",
+                        "templateIdSource": "parameter",
+                        "templateId": "DetailsWorkbook",
+                        "typeSource": "workbook",
+                        "gallerySource": "workbook",
+                        "locationSource": "default",
+                        "passSpecificParams": true,
+                        "templateParameters": [
+                          {
+                            "name": "Application",
+                            "source": "column",
+                            "value": "Application_s"
+                          },
+                          {
+                            "name": "TimeRange",
+                            "source": "parameter",
+                            "value": "TimeRange"
+                          },
+                          {
+                            "name": "Publisher",
+                            "source": "column",
+                            "value": "ApplicationPublisher_s"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "columnMatch": "dcount_ManagedDeviceID_g",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "orange",
+                      "customColumnWidthSetting": "200px"
+                    }
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "EventType_s",
+                    "label": "Event"
+                  },
+                  {
+                    "columnId": "Application_s",
+                    "label": "Application"
+                  },
+                  {
+                    "columnId": "ApplicationPublisher_s",
+                    "label": "Publisher"
+                  },
+                  {
+                    "columnId": "ApplicationVersion_s",
+                    "label": "Version"
+                  },
+                  {
+                    "columnId": "dcount_ManagedDeviceID_g",
+                    "label": "Devices Impacted"
+                  }
+                ]
+              },
+              "sortBy": []
+            },
+            "name": "Application Reliability - Application Hang Events"
+          }
+        ]
+      },
+      "customWidth": "65",
+      "name": "Application Reliability - Details"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "## Application Issue Summary",
+              "style": "info"
+            },
+            "name": "Application Issue Summary"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AppReliability_CL \r\n| where isnotempty(EventGenerated_s) and isnotempty(ApplicationPublisher_s)\r\n| summarize arg_max(EventGenerated_s, *) by ManagedDeviceID_g, Application_s, EventType_s \r\n| project EventGenerated_s, ComputerName_s, ManagedDeviceID_g, EventType_s, Application_s, ApplicationPublisher_s, ApplicationVersion_s\r\n| summarize dcount(ManagedDeviceID_g) by ApplicationPublisher_s\r\n| order by dcount_ManagedDeviceID_g desc",
+              "size": 3,
+              "title": "Application Reliability Issues - By Manufacturer ",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "EventType_s",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Error",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Hang",
+                          "representation": "4",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "dcount_ManagedDeviceID_g",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "orange",
+                      "customColumnWidthSetting": "200px"
+                    }
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "EventType_s",
+                    "label": "Event"
+                  },
+                  {
+                    "columnId": "ApplicationPublisher_s",
+                    "label": "Publisher"
+                  },
+                  {
+                    "columnId": "dcount_ManagedDeviceID_g",
+                    "label": "Devices Impacted"
+                  }
+                ]
+              },
+              "sortBy": [],
+              "tileSettings": {
+                "showBorder": false,
+                "titleContent": {
+                  "columnMatch": "ApplicationPublisher_s",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "dcount_ManagedDeviceID_g",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "auto"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              }
+            },
+            "name": "Application Reliability Issues - By Manufacturer "
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AppReliability_CL \r\n| where isnotempty(EventGenerated_s) and isnotempty(ApplicationPublisher_s)\r\n| summarize arg_max(EventGenerated_s, *) by ManagedDeviceID_g, Application_s, EventType_s \r\n| project EventGenerated_s, ComputerName_s, ManagedDeviceID_g, EventType_s, Application_s, ApplicationPublisher_s, ApplicationVersion_s\r\n| summarize dcount(ManagedDeviceID_g) by Application_s\r\n| order by dcount_ManagedDeviceID_g desc\r\n| take 20",
+              "size": 3,
+              "title": "Application Reliability Issues - By Exe",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "table",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "dcount_ManagedDeviceID_g",
+                    "formatter": 4,
+                    "formatOptions": {
+                      "palette": "greenRed",
+                      "customColumnWidthSetting": "200px"
+                    }
+                  },
+                  {
+                    "columnMatch": "EventType_s",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Error",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Hang",
+                          "representation": "4",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "dcount_ManagedDeviceID_g",
+                    "label": "Devices Impacted"
+                  }
+                ]
+              },
+              "sortBy": [],
+              "tileSettings": {
+                "showBorder": false,
+                "titleContent": {
+                  "columnMatch": "ApplicationPublisher_s",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "dcount_ManagedDeviceID_g",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "auto"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                }
+              },
+              "chartSettings": {
+                "createOtherGroup": 6
+              }
+            },
+            "name": "Application Reliability Issues - By Exe - Top 15"
+          }
+        ]
+      },
+      "customWidth": "35",
+      "name": "Application Reliability - Graphs"
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
