@@ -25,7 +25,7 @@ Version history:
 # Define your azure function URL: 
 # Example 'https://<appname>.azurewebsites.net/api/<functioname>'
 
-$AzureFunctionURL = "https://<YOUR FUNCTION APP URL>/api/LogCollectorAPI"
+$AzureFunctionURL = "https://<YOUR URL HERE>/api/LogCollectorAPI"
 
 # Enable TLS 1.2 support 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -152,6 +152,9 @@ $ComputerInfo = Get-CimInstance -ClassName Win32_ComputerSystem
 $ComputerName = $ComputerInfo.Name
 $ComputerManufacturer = $ComputerInfo.Manufacturer
 
+# Collect log flag
+$CollectAppReliability = $true
+
 if ($ComputerManufacturer -match "HP|Hewlett-Packard") {
 	$ComputerManufacturer = "HP"
 }
@@ -264,17 +267,14 @@ try {
 
 # Check status and report to Proactive Remediations
 if ($ResponseInventory -match "200") {
-	$AppResponse = $ResponseInventory.Split(",") | Where-Object { $_ -match "App:" }
-	$DeviceResponse = $ResponseInventory.Split(",") | Where-Object { $_ -match "Device:" }
 	$AppReliabilityResponse = $ResponseInventory.Split(",") | Where-Object { $_ -match "AppReliability:" }
-	if ($AppResponse -match "App:200") {
-		
-		$OutputMessage = $OutPutMessage + " AppReliability:OK " + $AppResponse
+	if ($AppReliabilityResponse -match "AppReliability:200") {
+		$OutputMessage = $OutPutMessage + " AppReliability:OK " + $AppReliabilityResponse
 	} else {
-		$OutputMessage = $OutPutMessage + " AppReliability:Fail " + $AppResponse
+		$OutputMessage = $OutPutMessage + " AppReliability:Fail " + $AppReliabilityResponse
 	}
 	Write-Output $OutputMessage
-	if (($DeviceResponse -notmatch "Device:200") -or ($AppResponse -notmatch "App:200")) {
+	if ($AppReliabilityResponse -notmatch "AppReliability:200") {
 		Exit 1
 	} else {
 		Exit 0
