@@ -136,7 +136,7 @@ $ComputerName = Get-ComputerInfo | Select-Object -ExpandProperty CsName
 #region APPRELIABILITY
 
 # Set Name of Log
-$LogName = "ApplicationReliability"
+$LogName = "AppReliability"
 
 $ReliabilityPayload = @()
 $ReliabilityEvents = Get-CimInstance win32_ReliabilityRecords | Where-Object { $_.EventIdentifier -match "1000|1002" -and $_.TimeGenerated -ge (Get-Date).AddHours(-24) }
