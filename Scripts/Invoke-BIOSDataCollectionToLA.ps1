@@ -11,11 +11,12 @@
     Author:      Jan Ketil Skanke & Maurice Daly
     Contact:     @JankeSkanke @Modaly_IT
     Created:     2020-10-11
-    Updated:     2021-09-08
+    Updated:     2021-12-03
     Version history:
     1.0.0 - (2021-Nov-3) Initial version
-    1.0.1 - (2021-Dec-01) Fixed issue with Dell BIOS version sorting and more than one entry pr SKU in OEMs XML file and catering for older format (ex: A15)
+    1.0.1 - (2021-Dec-01) Fixed issue with Dell BIOS version sorting and more than one entry per SKU in OEMs XML file and catering for older format (ex: A15)
     1.0.2 - (2021-Dec-01) Fixed issue with missing HP BIOS info and improved version matching
+    1.0.3 - (2021-Dec-03) Fixed issue with missing Dell BIOS info and added SKU to exception message
 .EXAMPLE
 #>
 #Requires -Modules 7Zip4Powershell, Az.Accounts, Az.OperationalInsights
@@ -117,6 +118,10 @@ Expand-7Zip -ArchiveFileName (Join-Path -Path $env:TEMP -ChildPath "CatalogPC.ca
 foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
     if (-not([string]::IsNullOrEmpty($Sku))){
         $AllBIOSVersions = ($DellBiosXML.Manifest.SoftwareComponent | Where-Object {($_.name.display."#cdata-section" -match "BIOS") -and ($_.SupportedSystems.Brand.Model.SystemID -match $SKU)}).vendorVersion
+        if ($null -eq $AllBIOSVersions) {
+            Write-Output "BIOS Information for SKU $($SKU) not available."
+            continue
+        }
         Write-Verbose "Testing $($AllBIOSVersions) on $($SKU)"
         $VersionBIOSVersion = @()
         if ($AllBIOSVersions -match "[a-zA-Z][0-9]{2}"){
@@ -133,7 +138,7 @@ foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
         }
         $CurrentDellBIOSVersion = $DellBIOSLatest.dellVersion
         [DateTime]$CurrentDellBIOSDate = $DellBIOSLatest.releaseDate
-        #Write-Output "SKU:$($sku),Version:$($BiosLatest.ver),Date:$($BiosLatest.date)"
+        #Write-Output "SKU:$($SKU),Version:$($CurrentDellBIOSVersion),Date:$($CurrentDellBIOSDate)"
         $BIOSInventory = New-Object System.Object
         $BIOSInventory | Add-Member -MemberType NoteProperty -Name "SKU" -Value "$SKU" -Force   
         $BIOSInventory | Add-Member -MemberType NoteProperty -Name "OEMVersion" -Value "$CurrentDellBIOSVersion" -Force   
@@ -147,7 +152,7 @@ foreach($SKU in $DellSystemSKUs.Results.SystemSKU_s){
         } catch {
             $ResponseBIOSInventory = "Error Code: $($_.Exception.Response.StatusCode.value__)"
             $ResponseBIOSMessage = $_.Exception.Message
-            Write-Output "Error $($ResponseBIOSInventory), Message $($ResponseBIOSMessage)"
+            Write-Output "$($SKU) --> Error $($ResponseBIOSInventory), Message $($ResponseBIOSMessage)"
         }
     }      
 }
