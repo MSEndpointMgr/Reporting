@@ -4,7 +4,7 @@
     {
       "type": 1,
       "content": {
-        "json": "<img src=\"%YourURLHere%" height=\"100\")>\r\n\r\n## Intune Audit Dashboard"
+        "json": "<img src=\"%YourURLHere%\" height=\"100\")>\r\n\r\n## Intune Audit Dashboard"
       },
       "name": "Header Text"
     },
