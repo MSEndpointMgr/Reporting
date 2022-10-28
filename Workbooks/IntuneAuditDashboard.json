@@ -1,0 +1,2487 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "<img src=\"%YourURLHere%" height=\"100\")>\r\n\r\n## Intune Audit Dashboard"
+      },
+      "name": "Header Text"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "This dashboard provides an overview of administrative actions carried out within the Intune environment.\r\n\r\nDashboards include;\r\n- Actions over time\r\n- Top accounts performing actions\r\n- Full audit details with filtering and hyperlinked details page\r\n\r\nThis report uses the Intune Audit log to render data. The last update time is listed to the right."
+      },
+      "customWidth": "60",
+      "name": "Intro Text"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "IntuneAuditLogs\r\n| summarize arg_max(TimeGenerated, *) by Type\r\n| extend LogDeltaCheck = iif(TimeGenerated > ago(3d),\"Service OK\",\"Service Issues\")\r\n| union (IntuneDevices\r\n    | summarize arg_max(TimeGenerated,Type,*))\r\n    | extend LogDeltaCheck = iif(TimeGenerated > ago(3d),\"Service OK\",\"Service Issues\")\r\n| project Type, TimeGenerated, LogDeltaCheck\r\n| sort by TimeGenerated asc",
+        "size": 3,
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "LogDeltaCheck",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Service OK",
+                    "representation": "success",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "2",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "customWidth": "40",
+      "name": "Log Update State"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "-----------"
+      },
+      "name": "Filter Rule Split"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "831f399a-8ae6-4adf-af9f-abeeffeccad3",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "label": "Time Range",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 2592000000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 300000
+                },
+                {
+                  "durationMs": 900000
+                },
+                {
+                  "durationMs": 1800000
+                },
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2419200000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "timeContext": {
+              "durationMs": 86400000
+            }
+          },
+          {
+            "id": "32216776-57d2-4e82-a8e2-9e387df17f1b",
+            "version": "KqlParameterItem/1.0",
+            "name": "Operation",
+            "type": 2,
+            "description": "This parameter is used to filter events based on their operation type",
+            "query": "IntuneAuditLogs\r\n| distinct OperationName\r\n| order by OperationName asc\r\n",
+            "isHiddenWhenLocked": true,
+            "typeSettings": {
+              "additionalResourceOptions": [],
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "value": null
+          },
+          {
+            "id": "70a5aaa7-7995-427d-8ba3-df7c145c0671",
+            "version": "KqlParameterItem/1.0",
+            "name": "OperationNormalised",
+            "type": 1,
+            "query": "IntuneAuditLogs\r\n| where OperationName == (\"{Operation}\")\r\n| extend OperationNormalised = toupper(\"{Operation}\")\r\n| distinct OperationNormalised",
+            "isHiddenWhenLocked": true,
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "58665aee-739f-40bd-9a1b-8adcdb8f8236",
+            "version": "KqlParameterItem/1.0",
+            "name": "LogWorkspace",
+            "type": 1,
+            "query": "resources\r\n| where name contains \"%YourLogAnalyticsWorkspaceHere%\" and type == \"microsoft.operationalinsights/workspaces\"\r\n| project id",
+            "isHiddenWhenLocked": true,
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources",
+            "value": ""
+          },
+          {
+            "id": "9ab8795b-3fcd-4ae6-a311-3ecc611bb7be",
+            "version": "KqlParameterItem/1.0",
+            "name": "DetailsWorkbook",
+            "type": 1,
+            "query": "resources\r\n| where type == \"microsoft.insights/workbooks\"\r\n| where properties.displayName has 'Intune Audit Event Details'\r\n| extend path = trim('[]', id)\r\n| project path",
+            "isHiddenWhenLocked": true,
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "50",
+      "name": "Params"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          ""
+        ],
+        "parameters": [
+          {
+            "id": "8afb3276-9be6-428c-8bbe-e3197d80a1d5",
+            "version": "KqlParameterItem/1.0",
+            "name": "AdminUser",
+            "label": "Admin User",
+            "type": 2,
+            "query": "IntuneAuditLogs \r\n| where OperationName == (\"{Operation}\")\r\n| distinct tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| where isnotempty(Properties_Actor_UPN)\r\n| order by Properties_Actor_UPN asc",
+            "value": null,
+            "typeSettings": {
+              "additionalResourceOptions": [],
+              "showDefault": false
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "conditionalVisibility": {
+        "parameterName": "Operation",
+        "comparison": "isNotEqualTo"
+      },
+      "customWidth": "50",
+      "name": "Admin User Filter"
+    },
+    {
+      "type": 11,
+      "content": {
+        "version": "LinkItem/1.0",
+        "style": "tabs",
+        "links": [
+          {
+            "id": "0c2b23a2-1fd6-4fd3-a8cb-656e244b0064",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Summary",
+            "subTarget": "Summary",
+            "style": "link"
+          },
+          {
+            "id": "7c18a79f-2bbe-408b-8353-a4247f123881",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Device Targeted Actions",
+            "subTarget": "FilterByDevice",
+            "style": "link"
+          },
+          {
+            "id": "4aed2022-8cd8-44c8-babb-0f5a5128b71a",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Target Actions",
+            "subTarget": "FilterByTarget",
+            "style": "link"
+          },
+          {
+            "id": "58fc11f9-3899-4907-a569-a62f6f41a4a8",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Admin Actions",
+            "subTarget": "FilterByIdentity",
+            "style": "link"
+          },
+          {
+            "id": "c0b64833-fa80-4ad8-a893-a610db6ff202",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Application Actions",
+            "subTarget": "FilterByApp",
+            "style": "link"
+          },
+          {
+            "id": "fdc4f110-5525-42f5-93b1-0f6cfd0eb8ac",
+            "cellValue": "Tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Detailed Audit Log",
+            "subTarget": "AuditLog",
+            "style": "link"
+          }
+        ]
+      },
+      "name": "Tabs"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "\n\n## Audit Summary\n\nBelow are summaries of the main audited functions over the previous {TimeRange} days. Clicking on each of the tabs will allow you to drill down and display more specific data.",
+              "style": "success"
+            },
+            "name": "Trending Events",
+            "styleSettings": {
+              "padding": "20px"
+            }
+          },
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "IntuneAuditLogs\n| summarize arg_max(TimeGenerated, *) by tostring(parse_json(Properties).AuditEventId)\n| extend Text = \"Total Events\"\n| extend TimeRange = (\"Time Range {TimeRange}\")\n| summarize count() by Text, TimeRange",
+                    "size": 4,
+                    "title": "Audit Event Count",
+                    "color": "green",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "tiles",
+                    "tileSettings": {
+                      "titleContent": {
+                        "columnMatch": "Text",
+                        "formatter": 18,
+                        "formatOptions": {
+                          "thresholdsOptions": "icons",
+                          "thresholdsGrid": [
+                            {
+                              "operator": "Default",
+                              "thresholdValue": null,
+                              "representation": "Monitoring",
+                              "text": "{0}{1}"
+                            }
+                          ]
+                        }
+                      },
+                      "leftContent": {
+                        "columnMatch": "count_",
+                        "formatter": 12,
+                        "formatOptions": {
+                          "palette": "greenRed"
+                        }
+                      },
+                      "secondaryContent": {
+                        "columnMatch": "TimeRange",
+                        "formatter": 1
+                      },
+                      "showBorder": false
+                    }
+                  },
+                  "name": "Total Audited Event Count"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "IntuneAuditLogs\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend ActionedBy = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend Application = parse_json(tostring(parse_json(Properties).Actor)).ApplicationName \n| distinct tostring(Application)\n| where isnotempty(Application)\n| summarize count()\n| extend Text = \"Delegated Apps\"\n| extend TimeRange = (\"Time Range {TimeRange}\")",
+                    "size": 4,
+                    "title": "Unique Applications",
+                    "color": "green",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "tiles",
+                    "tileSettings": {
+                      "titleContent": {
+                        "columnMatch": "Text",
+                        "formatter": 18,
+                        "formatOptions": {
+                          "thresholdsOptions": "icons",
+                          "thresholdsGrid": [
+                            {
+                              "operator": "Default",
+                              "thresholdValue": null,
+                              "representation": "AllServices",
+                              "text": "{0}{1}"
+                            }
+                          ]
+                        }
+                      },
+                      "leftContent": {
+                        "columnMatch": "count_",
+                        "formatter": 12,
+                        "formatOptions": {
+                          "palette": "greenRed"
+                        }
+                      },
+                      "secondaryContent": {
+                        "columnMatch": "TimeRange",
+                        "formatter": 1
+                      },
+                      "showBorder": false
+                    }
+                  },
+                  "name": "Unique Applications"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "IntuneAuditLogs\n| where OperationName == \"retire ManagedDevice\"\n| extend ManagedDeviceId = (parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| summarize arg_max(TimeGenerated, *) by tostring(ManagedDeviceId)\n| summarize count()\n| extend Text = \"Devices Retired\"\n| extend TimeRange = (\"Time Range {TimeRange}\")",
+                    "size": 4,
+                    "title": "Devices Retired",
+                    "color": "green",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "tiles",
+                    "tileSettings": {
+                      "titleContent": {
+                        "columnMatch": "Text",
+                        "formatter": 18,
+                        "formatOptions": {
+                          "thresholdsOptions": "icons",
+                          "thresholdsGrid": [
+                            {
+                              "operator": "Default",
+                              "thresholdValue": null,
+                              "representation": "Disconnect",
+                              "text": "{0}{1}"
+                            }
+                          ]
+                        }
+                      },
+                      "leftContent": {
+                        "columnMatch": "count_",
+                        "formatter": 12,
+                        "formatOptions": {
+                          "min": 0,
+                          "palette": "orange"
+                        }
+                      },
+                      "secondaryContent": {
+                        "columnMatch": "TimeRange",
+                        "formatter": 1
+                      },
+                      "showBorder": false
+                    }
+                  },
+                  "name": "Devices Retired"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "IntuneAuditLogs\n| where OperationName == \"wipe ManagedDevice\"\n| extend ManagedDeviceId = (parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| summarize arg_max(TimeGenerated, *) by tostring(ManagedDeviceId)\n| summarize count()\n| extend Text = \"Devices Wiped\"\n| extend TimeRange = (\"Time Range {TimeRange}\")",
+                    "size": 4,
+                    "title": "Devices Wiped",
+                    "color": "green",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "tiles",
+                    "tileSettings": {
+                      "titleContent": {
+                        "columnMatch": "Text",
+                        "formatter": 18,
+                        "formatOptions": {
+                          "thresholdsOptions": "icons",
+                          "thresholdsGrid": [
+                            {
+                              "operator": "Default",
+                              "thresholdValue": null,
+                              "representation": "Delete",
+                              "text": "{0}{1}"
+                            }
+                          ]
+                        }
+                      },
+                      "leftContent": {
+                        "columnMatch": "count_",
+                        "formatter": 12,
+                        "formatOptions": {
+                          "min": 0,
+                          "palette": "red"
+                        }
+                      },
+                      "secondaryContent": {
+                        "columnMatch": "TimeRange",
+                        "formatter": 1
+                      },
+                      "showBorder": false
+                    }
+                  },
+                  "name": "Devices Wiped"
+                }
+              ]
+            },
+            "customWidth": "20",
+            "name": "Summary Tiles",
+            "styleSettings": {
+              "margin": "10px",
+              "padding": "10px",
+              "showBorder": true
+            }
+          },
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "IntuneAuditLogs\n| summarize arg_max(TimeGenerated, *) by tostring(parse_json(Properties).AuditEventId)\n| extend Properties_Category = tostring(parse_json(Properties).Category)\n| extend PropertyDescription = iif(Properties_Category == '1',\"Enrollment\",iif(Properties_Category == '4',\"Device Actions\",iif(Properties_Category == '5',\"Mobile App\",iif(Properties_Category == '3' or Properties_Category == '10',\"Device Configuration\",iif(Properties_Category == '12',\"Device Management\",iif(Properties_Category == '16',\"Assignment Filters\",iif(Properties_Category == '2',\"Compliance Policy\",\"\")))))))\n| summarize dcount(tostring(parse_json(Properties).AuditEventId)) by PropertyDescription\n| order by dcount_Properties_AuditEventId desc",
+                    "size": 3,
+                    "title": "Audited Category Split",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "chartSettings": {
+                      "showMetrics": false,
+                      "showLegend": true
+                    }
+                  },
+                  "customWidth": "50",
+                  "name": "Action Count Pie Chart"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "IntuneAuditLogs\n| summarize arg_max(TimeGenerated, *) by tostring(parse_json(Properties).AuditEventId)\n| extend Properties_Category = tostring(parse_json(Properties).Category)\n| extend PropertyDescription = iif(Properties_Category == '1',\"Enrollment\",iif(Properties_Category == '4',\"Device Actions\",iif(Properties_Category == '5',\"Mobile App\",iif(Properties_Category == '3' or Properties_Category == '10',\"Device Configuration\",iif(Properties_Category == '12',\"Device Management\",iif(Properties_Category == '16',\"Assignment Filters\",iif(Properties_Category == '2',\"Compliance Policy\",\"\")))))))\n| extend OperationType = split(OperationName,\" \")[0]\n| extend OperationType = iif(OperationType contains \"Update\",\"Update\",OperationType)\n| extend OperationType = iif(OperationType contains \"Delete\",\"Delete\",OperationType)\n| extend OperationType = iif(OperationType contains \"Sync\",\"Sync\",OperationType)\n| extend OperationType = iif(OperationType contains \"Assign\",\"Assign\",OperationType)\n| extend OperationType = iif(OperationType contains \"Create\",\"Create\",OperationType)\n| extend OperationType = iif(OperationType contains \"Patch\",\"Patch\",OperationType)\n| extend OperationType = iif(OperationType contains \"Decrypt\",\"Decrypt\",OperationType)\n| summarize count() by tostring(OperationType)",
+                    "size": 3,
+                    "title": "Audited Methods Split",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "chartSettings": {
+                      "showMetrics": false,
+                      "showLegend": true,
+                      "seriesLabelSettings": [
+                        {
+                          "seriesName": "Create",
+                          "color": "green"
+                        },
+                        {
+                          "seriesName": "Delete",
+                          "color": "red"
+                        },
+                        {
+                          "seriesName": "Other",
+                          "color": "gray"
+                        },
+                        {
+                          "seriesName": "Decrypt",
+                          "color": "yellow"
+                        },
+                        {
+                          "seriesName": "Sync",
+                          "color": "grayBlue"
+                        },
+                        {
+                          "seriesName": "Action",
+                          "color": "blue"
+                        }
+                      ]
+                    }
+                  },
+                  "customWidth": "50",
+                  "name": "Action Method Count Pie Chart "
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "IntuneAuditLogs\r\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\r\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\r\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\r\n| extend UserPrincipalName = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| extend UserPrincipalName = iff(isempty(UserPrincipalName),\"System Generated\",UserPrincipalName)\r\n| where isnotempty(UserPrincipalName) and UserPrincipalName != \"System Generated\"\r\n| summarize arg_max(TimeGenerated, *) by Identity, OperationName, Target, TargetID\r\n| summarize count() by UserPrincipalName\r\n| order by count_ desc\r\n| take 25",
+                    "size": 3,
+                    "showAnalytics": true,
+                    "title": "Audited Users",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "gridSettings": {
+                      "formatters": [
+                        {
+                          "columnMatch": "count_",
+                          "formatter": 4,
+                          "formatOptions": {
+                            "palette": "blue"
+                          }
+                        }
+                      ],
+                      "labelSettings": [
+                        {
+                          "columnId": "UserPrincipalName",
+                          "label": "User"
+                        },
+                        {
+                          "columnId": "count_",
+                          "label": "Action Count"
+                        }
+                      ]
+                    }
+                  },
+                  "customWidth": "50",
+                  "conditionalVisibilities": [
+                    {
+                      "parameterName": "AdminUser",
+                      "comparison": "isEqualTo"
+                    },
+                    {
+                      "parameterName": "Operation",
+                      "comparison": "isEqualTo"
+                    }
+                  ],
+                  "name": "Audited Users"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "IntuneAuditLogs\r\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\r\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\r\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\r\n| extend ActionedBy = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| extend Application = parse_json(tostring(parse_json(Properties).Actor)).ApplicationName \r\n| where isnotempty(tostring(Application))\r\n| summarize count() by tostring(Application)\r\n| order by count_ desc\r\n",
+                    "size": 3,
+                    "showAnalytics": true,
+                    "title": "Audited Application Events",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "gridSettings": {
+                      "formatters": [
+                        {
+                          "columnMatch": "count_",
+                          "formatter": 4,
+                          "formatOptions": {
+                            "palette": "blue"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "customWidth": "50",
+                  "conditionalVisibilities": [
+                    {
+                      "parameterName": "AdminUser",
+                      "comparison": "isEqualTo"
+                    },
+                    {
+                      "parameterName": "Operation",
+                      "comparison": "isEqualTo"
+                    }
+                  ],
+                  "name": "Audited Application Events "
+                }
+              ]
+            },
+            "customWidth": "80",
+            "name": "Count Graphs",
+            "styleSettings": {
+              "margin": "20px",
+              "padding": "20px"
+            }
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "-------\n\n## Trending Events\n\nThe below trend graphs provide an overview of the actions carried out in your tenant on a daily basis over the previous {TimeRange} days.",
+              "style": "success"
+            },
+            "name": "Trending Events",
+            "styleSettings": {
+              "padding": "20px"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend ActionedBy = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend ActionedBy = iff(isempty(ActionedBy),parse_json(tostring(parse_json(Properties).Actor)).ApplicationName,ActionedBy)\n| summarize arg_max(TimeGenerated, *) by ActionedBy, OperationName, Target, TargetID\n| project TimeGenerated, ActionedBy, OperationName, Target, TargetID, ResultType\n| extend ActionType = split(OperationName,\" \")[0]\n| order by TimeGenerated desc\n| make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by tostring(ActionType)",
+              "size": 1,
+              "title": "Trending Events - {TimeRange}",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "areachart",
+              "tileSettings": {
+                "showBorder": false
+              },
+              "chartSettings": {
+                "showLegend": true
+              }
+            },
+            "conditionalVisibility": {
+              "parameterName": "Operation",
+              "comparison": "isEqualTo"
+            },
+            "name": "Trending Events - {TimeRange}"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| where OperationName contains \"policy\"\n| extend ActionType = iif(OperationName contains \"Patch\",\"Patch\",iif(OperationName contains \"Create\",\"Create\",iif(OperationName contains \"Delete\",\"Delete\",iif(OperationName contains \"Update\",\"Update\",\"Other\"))))\n| make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ActionType",
+              "size": 1,
+              "title": "Trending Policy Actions - {TimeRange}",
+              "timeContext": {
+                "durationMs": 2592000000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "unstackedbar",
+              "chartSettings": {
+                "showLegend": true,
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Patch",
+                    "color": "grayBlue"
+                  },
+                  {
+                    "seriesName": "Create",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Delete",
+                    "color": "red"
+                  },
+                  {
+                    "seriesName": "Update",
+                    "color": "greenDark"
+                  }
+                ]
+              }
+            },
+            "name": "Trending Policy Actions - {TimeRange}"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "Summary"
+      },
+      "name": "SummaryTab",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\r\n| extend AdminAccount = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| extend AdminAccount = iff(isnotempty(AdminAccount),AdminAccount,tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName))\r\n| extend AdminDetailsURI = iif(AdminAccount !contains \"System\",strcat('https://portal.azure.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/', AdminAccount),\"\")\r\n| extend ApplicationName_ = tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName)\r\n| extend Application = tostring(parse_json(tostring(parse_json(Properties).Actor)).Application)\r\n| extend ModifiedProps = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[0].ModifiedProperties))[0].Name)\r\n| extend New_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[0].ModifiedProperties))[0].New)\r\n| extend Old_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[0].ModifiedProperties))[0].Old)\r\n| extend IsDelegatedAdmin_ = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\r\n| extend ObjectId_ = tostring(parse_json(tostring(parse_json(Properties).Actor)).ObjectId)\r\n| extend Action = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\r\n| extend AuditEventId = tostring(parse_json(Properties).AuditEventId)\r\n| where isnotempty(Application)\r\n| project TimeGenerated, AdminAccount, OperationName, Action, ResultType, AdminDetailsURI, AuditEventId",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Recent Changes",
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "AdminAccount",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "%YourDomainHere%.",
+                          "representation": "Person",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "Gear",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "OperationName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Delete",
+                          "representation": "Trash",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "retire",
+                          "representation": "Reimage",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "sync",
+                          "representation": "Refresh",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Create",
+                          "representation": "success",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "wipe",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "1",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "ResultType",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "!=",
+                          "thresholdValue": "Success",
+                          "representation": "3",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "AdminDetailsURI",
+                    "formatter": 5
+                  }
+                ],
+                "filter": true,
+                "labelSettings": [
+                  {
+                    "columnId": "TimeGenerated",
+                    "label": "Time Generated"
+                  },
+                  {
+                    "columnId": "AdminAccount",
+                    "label": "User"
+                  },
+                  {
+                    "columnId": "OperationName",
+                    "label": "Operation"
+                  },
+                  {
+                    "columnId": "Action",
+                    "label": "Action / Target"
+                  },
+                  {
+                    "columnId": "ResultType",
+                    "label": "Result"
+                  },
+                  {
+                    "columnId": "AuditEventId",
+                    "label": "Audit Event ID"
+                  }
+                ]
+              }
+            },
+            "conditionalVisibilities": [
+              {
+                "parameterName": "AdminUser",
+                "comparison": "isEqualTo"
+              },
+              {
+                "parameterName": "Operation",
+                "comparison": "isEqualTo"
+              }
+            ],
+            "name": "Recent Changes"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\r\n| where OperationName == (\"{Operation}\")\r\n| extend AdminAccount = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| extend AdminAccount = iff(isnotempty(AdminAccount),AdminAccount,\"System Initiated Action\")\r\n| extend AdminDetailsURI = iif(AdminAccount !contains \"System\",strcat('https://portal.azure.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/', AdminAccount),\"\")\r\n| extend ApplicationName_ = tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName)\r\n| extend Application = tostring(parse_json(tostring(parse_json(Properties).Actor)).Application)\r\n| extend ModifiedProps = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[0].ModifiedProperties))[0].Name)\r\n| extend New_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[0].ModifiedProperties))[0].New)\r\n| extend Old_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[0].ModifiedProperties))[0].Old)\r\n| extend IsDelegatedAdmin_ = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\r\n| extend ObjectId_ = tostring(parse_json(tostring(parse_json(Properties).Actor)).ObjectId)\r\n| extend Action = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\r\n| where isnotempty(Application)\r\n| project TimeGenerated, AdminAccount, OperationName, Action, ResultType, AdminDetailsURI",
+              "size": 2,
+              "showAnalytics": true,
+              "title": "Recent Changes",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "AdminAccount",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "linkColumn": "AdminDetailsURI",
+                      "linkTarget": "Url",
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "startsWith",
+                          "thresholdValue": "System",
+                          "representation": "Gear",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "Person",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "OperationName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Delete",
+                          "representation": "Trash",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "retire",
+                          "representation": "Reimage",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "sync",
+                          "representation": "Refresh",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Create",
+                          "representation": "success",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "1",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "ResultType",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "!=",
+                          "thresholdValue": "Success",
+                          "representation": "3",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "AdminDetailsURI",
+                    "formatter": 5
+                  }
+                ],
+                "filter": true
+              }
+            },
+            "conditionalVisibilities": [
+              {
+                "parameterName": "Operation",
+                "comparison": "isNotEqualTo"
+              },
+              {
+                "parameterName": "AdminUser",
+                "comparison": "isEqualTo"
+              }
+            ],
+            "name": "Recent Changes - Operation Filter"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\r\n| where OperationName == (\"{Operation}\") and tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN) == (\"{AdminUser}\")\r\n| extend AdminAccount = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| extend AdminAccount = iff(isnotempty(AdminAccount),AdminAccount,\"System Initiated Action\")\r\n| extend AdminDetailsURI = iif(AdminAccount !contains \"System\",strcat('https://portal.azure.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/', AdminAccount),\"\")\r\n| extend ApplicationName_ = tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName)\r\n| extend Application = tostring(parse_json(tostring(parse_json(Properties).Actor)).Application)\r\n| extend ModifiedProps = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[0].ModifiedProperties))[0].Name)\r\n| extend New_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[0].ModifiedProperties))[0].New)\r\n| extend Old_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[0].ModifiedProperties))[0].Old)\r\n| extend IsDelegatedAdmin_ = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\r\n| extend ObjectId_ = tostring(parse_json(tostring(parse_json(Properties).Actor)).ObjectId)\r\n| extend Action = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\r\n| where isnotempty(Application)\r\n| project TimeGenerated, AdminAccount, OperationName, Action, ResultType, AdminDetailsURI",
+              "size": 2,
+              "showAnalytics": true,
+              "title": "Recent Changes",
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "AdminAccount",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "linkColumn": "AdminDetailsURI",
+                      "linkTarget": "Url",
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "startsWith",
+                          "thresholdValue": "System",
+                          "representation": "Gear",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "Person",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "OperationName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Delete",
+                          "representation": "Trash",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "retire",
+                          "representation": "Reimage",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "sync",
+                          "representation": "Refresh",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Create",
+                          "representation": "success",
+                          "text": "{0}{0}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "1",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "ResultType",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "!=",
+                          "thresholdValue": "Success",
+                          "representation": "3",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "AdminDetailsURI",
+                    "formatter": 5
+                  }
+                ],
+                "filter": true
+              }
+            },
+            "conditionalVisibilities": [
+              {
+                "parameterName": "AdminUser",
+                "comparison": "isNotEqualTo"
+              },
+              {
+                "parameterName": "Operation",
+                "comparison": "isNotEqualTo"
+              }
+            ],
+            "name": "Recent Changes - Admin Filter"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "AuditLog"
+      },
+      "name": "AuditDetails",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "## Events By Target\n\nOn this tab you can filter events by the targeted action. Please note that device targetted actions are displays separately within the device actions tab.\n\nSelect a target action to filter your data.",
+              "style": "info"
+            },
+            "name": "Filter Target Header",
+            "styleSettings": {
+              "padding": "20px"
+            }
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "9e731304-bfe4-42f9-b2a9-2979f4e470cc",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Target",
+                  "type": 2,
+                  "query": "IntuneAuditLogs \n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| where Target !contains \"iPhone\" and Target !contains \"Android\" and Target !contains \"iPad\" and isnotempty(Target) and Target !contains \"<null>\" and Target !contains \"Windows\"\n| distinct Target\n| order by Target asc",
+                  "value": null,
+                  "typeSettings": {
+                    "additionalResourceOptions": [],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "TargetFilter"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| where tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0]) == (\"{Target}\")\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend UserPrincipalName = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend UserPrincipalName = iff(isempty(UserPrincipalName),\"System Generated\",UserPrincipalName)\n| summarize arg_max(TimeGenerated, *) by UserPrincipalName, OperationName, Target, TargetID\n| extend Title = \"Target Actions\"\n| summarize count() by Title",
+              "size": 3,
+              "color": "blue",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "tiles",
+              "tileSettings": {
+                "titleContent": {
+                  "columnMatch": "Title",
+                  "formatter": 18,
+                  "formatOptions": {
+                    "thresholdsOptions": "icons",
+                    "thresholdsGrid": [
+                      {
+                        "operator": "Default",
+                        "thresholdValue": null,
+                        "representation": "Gear",
+                        "text": "{0}{1}"
+                      }
+                    ]
+                  }
+                },
+                "leftContent": {
+                  "columnMatch": "count_",
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "style": "decimal"
+                    }
+                  }
+                },
+                "showBorder": false
+              }
+            },
+            "customWidth": "15",
+            "name": "Target Action Count"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| where tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0]) == (\"{Target}\")\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend ActionedBy = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend ActionedBy = iff(isempty(ActionedBy),parse_json(tostring(parse_json(Properties).Actor)).ApplicationName,ActionedBy)\n| summarize arg_max(TimeGenerated, *) by ActionedBy, OperationName, Target, TargetID\n| project TimeGenerated, ActionedBy, OperationName, Target, TargetID, ResultType\n| extend OperationType = iff(OperationName has \"Create\",\"Create\",iff(OperationName has \"Delete\",\"Delete\",iff(OperationName has \"Update\",\"Update\",\"Get\")))\n| order by TimeGenerated desc\n| make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by OperationType",
+              "size": 1,
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "areachart",
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Create",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Update",
+                    "color": "grayBlue"
+                  },
+                  {
+                    "seriesName": "Delete",
+                    "color": "red"
+                  }
+                ]
+              }
+            },
+            "customWidth": "85",
+            "name": "TagetOperationsTimeLine"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| where tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0]) == (\"{Target}\")\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend ActionedBy = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend ActionedBy = iff(isempty(ActionedBy),parse_json(tostring(parse_json(Properties).Actor)).ApplicationName,ActionedBy)\n| extend AuditEventId = tostring(parse_json(Properties).AuditEventId)\n| summarize arg_max(TimeGenerated, *) by ActionedBy, OperationName, Target, TargetID, AuditEventId\n| project TimeGenerated, ActionedBy, OperationName, Target, TargetID, ResultType, AuditEventId\n| order by TimeGenerated desc",
+              "size": 3,
+              "showAnalytics": true,
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "OperationName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Patch",
+                          "representation": "Commit",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Create",
+                          "representation": "Code",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Delete",
+                          "representation": "Delete",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "ResultType",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Success",
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "UserPrincipalName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "Person",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "filter": true,
+                "labelSettings": [
+                  {
+                    "columnId": "TimeGenerated",
+                    "label": "Time Generated"
+                  },
+                  {
+                    "columnId": "ActionedBy",
+                    "label": "Actioned By"
+                  },
+                  {
+                    "columnId": "OperationName",
+                    "label": "Operation"
+                  },
+                  {
+                    "columnId": "ResultType",
+                    "label": "Result"
+                  }
+                ]
+              }
+            },
+            "name": "FilterByTargetList"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "FilterByTarget"
+      },
+      "name": "Filter By Target",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "## Events By Administrative Actions\n\nSelect the user principal name of your admin, and then the action type to display audit events assoicated with that admin account.",
+              "style": "info"
+            },
+            "name": "FilterIdentityHeader",
+            "styleSettings": {
+              "padding": "20px"
+            }
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "3312e492-a36f-442a-bd17-1e6fe22c15db",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Identity",
+                  "label": "Admin User ID",
+                  "type": 2,
+                  "isRequired": true,
+                  "query": "IntuneAuditLogs\r\n| extend AdminAccount = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| extend AdminAccount = iff(isnotempty(AdminAccount),AdminAccount,tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName))\r\n| where AdminAccount matches regex \"^[A-Za-z0-9]+@\"\r\n| distinct AdminAccount\r\n| order by AdminAccount asc",
+                  "typeSettings": {
+                    "additionalResourceOptions": [],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": null
+                },
+                {
+                  "id": "638bc20e-c6b5-42dc-a2b7-2fc73ac42d90",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "OperationType",
+                  "label": "Operation Type",
+                  "type": 2,
+                  "query": "IntuneAuditLogs\r\n| extend AdminAccount = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| extend AdminAccount = iff(isnotempty(AdminAccount),AdminAccount,tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName))\r\n| where AdminAccount == (\"{Identity}\")\r\n| distinct tostring(parse_json(Properties).Category)\r\n| extend PropertyDescription = iif(Properties_Category == '1',\"Enrollment\",iif(Properties_Category == '4',\"Device Actions\",iif(Properties_Category == '5',\"Mobile App\",iif(Properties_Category == '3' or Properties_Category == '10',\"Device Configuration\",iif(Properties_Category == '12',\"Device Management\",iif(Properties_Category == '16',\"Assignment Filters\",iif(Properties_Category == '2',\"Compliance Policy\",\"\")))))))\r\n",
+                  "typeSettings": {
+                    "additionalResourceOptions": [],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": null
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "IdentityFilter"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| where tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN) contains (\"{Identity}\")\n| where tostring(parse_json(Properties).Category) contains iff(isnotempty(\"{OperationType:value}\"), (\"{OperationType:value}\"), \"\")\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend UserPrincipalName = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend UserPrincipalName = tolower(iff(isempty(UserPrincipalName),\"System Generated\",UserPrincipalName))\n| summarize arg_max(TimeGenerated, *) by UserPrincipalName, OperationName, Target, TargetID\n| extend Title = \"User Actions\"\n| summarize count() by Title, UserPrincipalName\n| order by count_ desc\n| take 1",
+              "size": 3,
+              "color": "blue",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "tiles",
+              "tileSettings": {
+                "titleContent": {
+                  "columnMatch": "Title",
+                  "formatter": 18,
+                  "formatOptions": {
+                    "thresholdsOptions": "icons",
+                    "thresholdsGrid": [
+                      {
+                        "operator": "Default",
+                        "thresholdValue": null,
+                        "representation": "Person",
+                        "text": "{0}{1}"
+                      }
+                    ]
+                  }
+                },
+                "leftContent": {
+                  "columnMatch": "count_",
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "style": "decimal"
+                    }
+                  }
+                },
+                "secondaryContent": {
+                  "columnMatch": "UserPrincipalName"
+                },
+                "showBorder": false
+              }
+            },
+            "customWidth": "15",
+            "conditionalVisibility": {
+              "parameterName": "Identity",
+              "comparison": "isNotEqualTo"
+            },
+            "name": "Users Accounts - Identity"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| where tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN) contains (\"{Identity}\")\n| where tostring(parse_json(Properties).Category) contains iff(isnotempty(\"{OperationType:value}\"), (\"{OperationType:value}\"), \"\")\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend ActionedBy = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend ActionedBy = iff(isempty(ActionedBy),parse_json(tostring(parse_json(Properties).Actor)).ApplicationName,ActionedBy)\n| extend OperationType = iff(OperationName has \"Create\",\"Create\",iff(OperationName has \"Delete\",\"Delete\",\"Get\"))\n| summarize arg_max(TimeGenerated, *) by ActionedBy, OperationName, Target, TargetID, OperationType\n| make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by OperationType\n//| summarize count() by bin(TimeGenerated, {TimeRange:grain})\n",
+              "size": 1,
+              "color": "green",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "areachart",
+              "tileSettings": {
+                "showBorder": false
+              },
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Get",
+                    "color": "blue"
+                  },
+                  {
+                    "seriesName": "Create",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Delete",
+                    "color": "red"
+                  },
+                  {
+                    "seriesName": "Wipe",
+                    "color": "redDark"
+                  },
+                  {
+                    "seriesName": "Retire",
+                    "color": "orange"
+                  }
+                ]
+              }
+            },
+            "customWidth": "85",
+            "conditionalVisibility": {
+              "parameterName": "Identity",
+              "comparison": "isNotEqualTo"
+            },
+            "name": "Identity Actions TimeLine "
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| where tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN) contains (\"{Identity}\")\n| where tostring(parse_json(Properties).Category) contains iff(isnotempty(\"{OperationType:value}\"), (\"{OperationType:value}\"), \"\")\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend ActionedBy = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend ActionedBy = iff(isempty(ActionedBy),parse_json(tostring(parse_json(Properties).Actor)).ApplicationName,ActionedBy)\n| extend AuditEventId = tostring(parse_json(Properties).AuditEventId)\n//| extend Link = iif(OperationName has \"Patch\" or OperationName has \"Create\",\"Click here for details\",\"\")\n| extend Link = \"Click here for details\"\n| project TimeGenerated, ActionedBy, OperationName, Target, TargetID, ResultType, AuditEventId, Link\n| order by TimeGenerated desc",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Previous 100 Actions",
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "OperationName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "startsWith",
+                          "thresholdValue": "Patch",
+                          "representation": "Commit",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "startsWith",
+                          "thresholdValue": "Delete",
+                          "representation": "Delete",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Create",
+                          "representation": "Code",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "pdate",
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "retire",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Notification",
+                          "representation": "Alert",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "1",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "TargetID",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "ResultType",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Success",
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "AuditEventId",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "Link",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "linkColumn": "AuditEventId",
+                      "linkTarget": "WorkbookTemplate",
+                      "linkIsContextBlade": true,
+                      "workbookContext": {
+                        "componentIdSource": "parameter",
+                        "componentId": "DetailsWorkbook",
+                        "resourceIdsSource": "parameter",
+                        "resourceIds": "LogWorkspace",
+                        "templateIdSource": "parameter",
+                        "templateId": "DetailsWorkbook",
+                        "typeSource": "workbook",
+                        "gallerySource": "workbook",
+                        "locationSource": "default",
+                        "passSpecificParams": true,
+                        "templateParameters": [
+                          {
+                            "name": "AuditEventID",
+                            "source": "column",
+                            "value": "AuditEventId"
+                          },
+                          {
+                            "name": "User",
+                            "source": "column",
+                            "value": "UserPrincipalName"
+                          },
+                          {
+                            "name": "TargetID",
+                            "source": "column",
+                            "value": "TargetID"
+                          },
+                          {
+                            "name": "Operation",
+                            "source": "column",
+                            "value": "OperationName"
+                          },
+                          {
+                            "name": "TimeRange",
+                            "source": "parameter",
+                            "value": "TimeRange"
+                          },
+                          {
+                            "name": "Time",
+                            "source": "column",
+                            "value": "TimeGenerated"
+                          },
+                          {
+                            "name": "AuditType",
+                            "source": "static",
+                            "value": "AdminUser"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "columnMatch": "UserPrincipalName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "Person",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "rowLimit": 100,
+                "filter": true,
+                "sortBy": [
+                  {
+                    "itemKey": "TimeGenerated",
+                    "sortOrder": 2
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "TimeGenerated",
+                    "label": "Time Generated"
+                  },
+                  {
+                    "columnId": "ActionedBy",
+                    "label": "Actioned By"
+                  },
+                  {
+                    "columnId": "OperationName",
+                    "label": "Operation"
+                  },
+                  {
+                    "columnId": "ResultType",
+                    "label": "Result"
+                  },
+                  {
+                    "columnId": "Link",
+                    "label": "Details"
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "TimeGenerated",
+                  "sortOrder": 2
+                }
+              ]
+            },
+            "conditionalVisibility": {
+              "parameterName": "Identity",
+              "comparison": "isNotEqualTo"
+            },
+            "name": "Identity Actions"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "FilterByIdentity"
+      },
+      "name": "FilterByIdentity",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "## Events By Application\n\nSelect the enterprise application to filter audit events based on the app.",
+              "style": "info"
+            },
+            "name": "FilterIdentityHeader"
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "3312e492-a36f-442a-bd17-1e6fe22c15db",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Identity",
+                  "label": "Application",
+                  "type": 2,
+                  "isRequired": true,
+                  "query": "IntuneAuditLogs\r\n| where tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN) !has \"%YourDomainNameHere%.\"\r\n| extend AdminAccount = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| extend AdminAccount = iff(isnotempty(AdminAccount),AdminAccount,tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName))\r\n| distinct AdminAccount\r\n| where isnotempty(AdminAccount)\r\n| order by AdminAccount asc",
+                  "typeSettings": {
+                    "additionalResourceOptions": [],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": null
+                },
+                {
+                  "id": "638bc20e-c6b5-42dc-a2b7-2fc73ac42d90",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "OperationType",
+                  "label": "Operation Type",
+                  "type": 2,
+                  "query": "IntuneAuditLogs\r\n| extend AdminAccount = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| extend AppRegistration = iff(isnotempty(AdminAccount),AdminAccount,tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName))\r\n| where AppRegistration == (\"{Identity}\")\r\n| distinct tostring(parse_json(Properties).Category)\r\n| extend PropertyDescription = iif(Properties_Category == '1',\"Enrollment\",iif(Properties_Category == '4',\"Device Actions\",iif(Properties_Category == '5',\"Mobile App\",iif(Properties_Category == '3' or Properties_Category == '10',\"Device Configuration\",iif(Properties_Category == '12',\"Device Management\",iif(Properties_Category == '16',\"Assignment Filters\",iif(Properties_Category == '2',\"Compliance Policy\",\"\")))))))\r\n",
+                  "typeSettings": {
+                    "additionalResourceOptions": [],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "value": null
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "IdentityFilter"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| extend AdminAccount = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend AppRegistration = iff(isnotempty(AdminAccount),AdminAccount,tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName))\n| where AppRegistration contains (\"{Identity}\")\n| where tostring(parse_json(Properties).Category) contains iff(isnotempty(\"{OperationType:value}\"), (\"{OperationType:value}\"), \"\")\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| summarize arg_max(TimeGenerated, *) by AppRegistration, OperationName, Target, TargetID\n| extend Title = \"App Reg Actions\"\n| summarize count() by Title, AppRegistration",
+              "size": 3,
+              "color": "blue",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "tiles",
+              "tileSettings": {
+                "titleContent": {
+                  "columnMatch": "Title",
+                  "formatter": 18,
+                  "formatOptions": {
+                    "thresholdsOptions": "icons",
+                    "thresholdsGrid": [
+                      {
+                        "operator": "Default",
+                        "thresholdValue": null,
+                        "representation": "Person",
+                        "text": "{0}{1}"
+                      }
+                    ]
+                  }
+                },
+                "leftContent": {
+                  "columnMatch": "count_",
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "style": "decimal"
+                    }
+                  }
+                },
+                "secondaryContent": {
+                  "columnMatch": "AppRegistration"
+                },
+                "showBorder": false
+              }
+            },
+            "customWidth": "15",
+            "conditionalVisibility": {
+              "parameterName": "Identity",
+              "comparison": "isNotEqualTo"
+            },
+            "name": "Users Accounts - Identity"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| extend AdminAccount = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend AppRegistration = iff(isnotempty(AdminAccount),AdminAccount,tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName))\n| where AppRegistration contains (\"{Identity}\")\n| where tostring(parse_json(Properties).Category) contains iff(isnotempty(\"{OperationType:value}\"), (\"{OperationType:value}\"), \"\")\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend OperationType = iff(OperationName has \"Create\",\"Create\",iff(OperationName has \"Delete\",\"Delete\",\"Get\"))\n| summarize arg_max(TimeGenerated, *) by AppRegistration, OperationName, Target, TargetID, OperationType\n| make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by OperationType\n//| summarize count() by bin(TimeGenerated, {TimeRange:grain})\n",
+              "size": 1,
+              "color": "green",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "areachart",
+              "tileSettings": {
+                "showBorder": false
+              },
+              "chartSettings": {
+                "seriesLabelSettings": [
+                  {
+                    "seriesName": "Get",
+                    "color": "blue"
+                  },
+                  {
+                    "seriesName": "Create",
+                    "color": "green"
+                  },
+                  {
+                    "seriesName": "Delete",
+                    "color": "red"
+                  }
+                ]
+              }
+            },
+            "customWidth": "85",
+            "conditionalVisibility": {
+              "parameterName": "Identity",
+              "comparison": "isNotEqualTo"
+            },
+            "name": "Identity Actions TimeLine "
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\n| extend AdminAccount = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend AppRegistration = iff(isnotempty(AdminAccount),AdminAccount,tostring(parse_json(tostring(parse_json(Properties).Actor)).ApplicationName))\n| where AppRegistration contains (\"{Identity}\")\n| where tostring(parse_json(Properties).Category) contains iff(isnotempty(\"{OperationType:value}\"), (\"{OperationType:value}\"), \"\")\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend AuditEventId = tostring(parse_json(Properties).AuditEventId)\n//| extend Link = iif(OperationName has \"Patch\" or OperationName has \"Create\",\"Click here for details\",\"\")\n| extend Link = \"Click here for details\"\n| project TimeGenerated, AppRegistration, OperationName, Target, TargetID, ResultType, AuditEventId, Link\n| order by TimeGenerated desc",
+              "size": 3,
+              "showAnalytics": true,
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "OperationName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "startsWith",
+                          "thresholdValue": "Patch",
+                          "representation": "Commit",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "startsWith",
+                          "thresholdValue": "Delete",
+                          "representation": "Delete",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Create",
+                          "representation": "Code",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "pdate",
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "retire",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Notification",
+                          "representation": "Alert",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "1",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "TargetID",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "ResultType",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "==",
+                          "thresholdValue": "Success",
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "AuditEventId",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "Link",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "linkColumn": "AuditEventId",
+                      "linkTarget": "WorkbookTemplate",
+                      "linkIsContextBlade": true,
+                      "workbookContext": {
+                        "componentIdSource": "parameter",
+                        "componentId": "DetailsWorkbook",
+                        "resourceIdsSource": "parameter",
+                        "resourceIds": "LogWorkspace",
+                        "templateIdSource": "parameter",
+                        "templateId": "DetailsWorkbook",
+                        "typeSource": "workbook",
+                        "gallerySource": "workbook",
+                        "locationSource": "default",
+                        "passSpecificParams": true,
+                        "templateParameters": [
+                          {
+                            "name": "AuditEventID",
+                            "source": "column",
+                            "value": "AuditEventId"
+                          },
+                          {
+                            "name": "User",
+                            "source": "column",
+                            "value": "AppRegistration"
+                          },
+                          {
+                            "name": "TargetID",
+                            "source": "column",
+                            "value": "TargetID"
+                          },
+                          {
+                            "name": "Operation",
+                            "source": "column",
+                            "value": "OperationName"
+                          },
+                          {
+                            "name": "TimeRange",
+                            "source": "parameter",
+                            "value": "TimeRange"
+                          },
+                          {
+                            "name": "Time",
+                            "source": "column",
+                            "value": "TimeGenerated"
+                          },
+                          {
+                            "name": "AuditType",
+                            "source": "static",
+                            "value": "AppRegistration"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "columnMatch": "UserPrincipalName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "Person",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "filter": true,
+                "sortBy": [
+                  {
+                    "itemKey": "TimeGenerated",
+                    "sortOrder": 2
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "TimeGenerated",
+                    "label": "Time Generated"
+                  },
+                  {
+                    "columnId": "OperationName",
+                    "label": "Operation"
+                  },
+                  {
+                    "columnId": "ResultType",
+                    "label": "Result"
+                  },
+                  {
+                    "columnId": "Link",
+                    "label": "Details"
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "TimeGenerated",
+                  "sortOrder": 2
+                }
+              ]
+            },
+            "conditionalVisibility": {
+              "parameterName": "Identity",
+              "comparison": "isNotEqualTo"
+            },
+            "name": "Identity Actions"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "FilterByApp"
+      },
+      "name": "FilterByApp",
+      "styleSettings": {
+        "padding": "20px",
+        "showBorder": true
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "## Device Actions\n\nThis section of the dashboard deals with actions pushed to client devices. You can filter the output to specific OS types using the below drop down parameter.",
+              "style": "info"
+            },
+            "name": "Device Tab Header",
+            "styleSettings": {
+              "padding": "20px"
+            }
+          },
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "1002e4e9-5786-4af4-a06e-2c165270dd41",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "OS",
+                  "type": 2,
+                  "multiSelect": true,
+                  "quote": "'",
+                  "delimiter": ",",
+                  "query": "let DeviceDetails = IntuneDevices\n| project OS, OSVersion, DeviceId, Model, Manufacturer;\nIntuneAuditLogs \n| where isnotempty(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend DeviceId = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| join (DeviceDetails) on $left.DeviceId == $right.DeviceId\n| extend OSShortName = iif(OS == \"iOS/iPadOS\", \"iOS/iPadOS\", iif(OS has \"Android\", \"Android\", iif(OS has \"Windows\", \"Windows\", iif(OS == \"MacOS\", \"MacOS\", \"Linux\"))))\n| distinct OSShortName",
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::all"
+                    ],
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "defaultValue": "value::all",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "Device Parameters",
+            "styleSettings": {
+              "padding": "20px"
+            }
+          },
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "let DeviceDetails = IntuneDevices\n| project OS, OSVersion, DeviceId, Model, Manufacturer;\nIntuneAuditLogs \n| where isnotempty(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend DeviceId = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| join (DeviceDetails) on $left.DeviceId == $right.DeviceId\n| summarize arg_max(TimeGenerated, *) by DeviceId\n| extend OSShortName = iif(OS == \"iOS/iPadOS\", \"iOS/iPadOS\", iif(OS has \"Android\", \"Android\", iif(OS has \"Windows\", \"Windows\", iif(OS == \"MacOS\", \"MacOS\", \"Linux\"))))\n| where OSShortName in ({OS}) or '*' in ({OS})\n| summarize count() by OSShortName\n\n",
+                    "size": 3,
+                    "title": "Device Actions - By Operating System",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "chartSettings": {
+                      "seriesLabelSettings": [
+                        {
+                          "seriesName": "Android",
+                          "color": "orange"
+                        },
+                        {
+                          "seriesName": "iOS/iPadOS",
+                          "color": "green"
+                        },
+                        {
+                          "seriesName": "Windows",
+                          "color": "blue"
+                        },
+                        {
+                          "seriesName": "MacOS",
+                          "color": "blueDark"
+                        }
+                      ]
+                    }
+                  },
+                  "name": "Device Actions - Android"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "IntuneAuditLogs\n| where OperationName contains \"ManagedDevice\"\n| extend Target = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend UserPrincipalName = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend UserPrincipalName = iff(isempty(UserPrincipalName),\"System Generated\",UserPrincipalName)\n| where isnotempty(UserPrincipalName) and UserPrincipalName != \"System Generated\"\n| summarize arg_max(TimeGenerated, *) by Identity, OperationName, Target, TargetID\n| summarize count() by UserPrincipalName\n| order by count_ desc\n| top 5 by count_",
+                    "size": 3,
+                    "title": "Device Actions - Top Users",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "gridSettings": {
+                      "formatters": [
+                        {
+                          "columnMatch": "count_",
+                          "formatter": 3,
+                          "formatOptions": {
+                            "palette": "blue"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "name": "Device Actions - Top Users"
+                }
+              ]
+            },
+            "customWidth": "35",
+            "name": "Devices Left Pane"
+          },
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "let DeviceDetails = IntuneDevices\n| project OS, OSVersion, DeviceId, Model, Manufacturer;\nIntuneAuditLogs \n| where isnotempty(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend DeviceId = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| join (DeviceDetails) on $left.DeviceId == $right.DeviceId\n| extend OSShortName = iif(OS == \"iOS/iPadOS\", \"iOS/iPadOS\", iif(OS has \"Android\", \"Android\", iif(OS has \"Windows\", \"Windows\", iif(OS == \"MacOS\", \"MacOS\", \"Linux\"))))\n| where OSShortName in ({OS}) or '*' in ({OS})\n| summarize arg_max(TimeGenerated, *) by DeviceId\n| make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by OSShortName",
+                    "size": 1,
+                    "title": "Device Action Timeline - By OS",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "areachart",
+                    "chartSettings": {
+                      "seriesLabelSettings": [
+                        {
+                          "seriesName": "Delete ManagedDevice",
+                          "color": "red"
+                        },
+                        {
+                          "seriesName": "Android",
+                          "color": "orange"
+                        },
+                        {
+                          "seriesName": "iOS/iPadOS",
+                          "color": "green"
+                        },
+                        {
+                          "seriesName": "Windows",
+                          "color": "blue"
+                        },
+                        {
+                          "seriesName": "MacOS",
+                          "color": "blueDark"
+                        }
+                      ]
+                    }
+                  },
+                  "name": "Device Action Timeline - By OS"
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "-------------"
+                  },
+                  "name": "Graph HR"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "let DeviceDetails = IntuneDevices\n| project OS, OSVersion, DeviceId, Model, Manufacturer;\nIntuneAuditLogs \n| where isnotempty(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend DeviceId = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| join (DeviceDetails) on $left.DeviceId == $right.DeviceId\n| extend OSShortName = iif(OS == \"iOS/iPadOS\", \"iOS/iPadOS\", iif(OS has \"Android\", \"Android\", iif(OS has \"Windows\", \"Windows\", iif(OS == \"MacOS\", \"MacOS\", \"Linux\"))))\n| where OSShortName in ({OS}) or '*' in ({OS})\n| summarize arg_max(TimeGenerated, *) by DeviceId\n| make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by OperationName",
+                    "size": 1,
+                    "title": "Device Action Timeline",
+                    "timeContextFromParameter": "TimeRange",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "linechart",
+                    "chartSettings": {
+                      "seriesLabelSettings": [
+                        {
+                          "seriesName": "Delete ManagedDevice",
+                          "color": "red"
+                        }
+                      ]
+                    }
+                  },
+                  "name": "Device Action Timeline"
+                }
+              ]
+            },
+            "customWidth": "65",
+            "name": "Device Right Pane"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let DeviceDetails = IntuneDevices\n| project OS, OSVersion, DeviceName, DeviceId, Model, Manufacturer;\nIntuneAuditLogs \n| where OperationName contains \"ManagedDevice\"\n| where isnotempty(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend DeviceId = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend DelegatedAdmin = tostring(parse_json(tostring(parse_json(Properties).Actor)).IsDelegatedAdmin)\n| extend ActionedBy = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\n| extend ActionedBy = iff(isempty(ActionedBy),parse_json(tostring(parse_json(Properties).Actor)).ApplicationName,ActionedBy)\n| join (DeviceDetails) on $left.DeviceId == $right.DeviceId\n| extend TargetID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\n| extend OSShortName = iif(OS == \"iOS/iPadOS\", \"iOS/iPadOS\", iif(OS has \"Android\", \"Android\", iif(OS has \"Windows\", \"Windows\", iif(OS == \"MacOS\", \"MacOS\", \"Linux\"))))\n| where OSShortName in ({OS}) or '*' in ({OS})\n| summarize arg_max(TimeGenerated, *) by ActionedBy, OperationName, DeviceName, DeviceId\n| project TimeGenerated, ActionedBy, OperationName, DeviceName, DeviceId, ResultType, [\"Managment Type\"] = OS, [\"OS\"] = OSShortName, OSVersion\n| order by TimeGenerated desc\n\n\n",
+              "size": 3,
+              "showAnalytics": true,
+              "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "OperationName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Patch",
+                          "representation": "Commit",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Create",
+                          "representation": "Code",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Delete",
+                          "representation": "Delete",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "retire",
+                          "representation": "Discard",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "sync",
+                          "representation": "Pending",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "reboot",
+                          "representation": "pending",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "wipe",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "ResultType",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Success",
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "3",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "UserPrincipalName",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "Person",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "filter": true,
+                "labelSettings": [
+                  {
+                    "columnId": "TimeGenerated",
+                    "label": "Time Generated"
+                  },
+                  {
+                    "columnId": "ActionedBy",
+                    "label": "Actioned By"
+                  },
+                  {
+                    "columnId": "OperationName",
+                    "label": "Operation"
+                  }
+                ]
+              }
+            },
+            "name": "Device Actions List"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "Tab",
+        "comparison": "isEqualTo",
+        "value": "FilterByDevice"
+      },
+      "name": "Filter By Device",
+      "styleSettings": {
+        "showBorder": true
+      }
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

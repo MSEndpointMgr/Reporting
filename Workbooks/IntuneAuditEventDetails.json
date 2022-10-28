@@ -1,0 +1,287 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "43d39a45-75e2-4fa1-b5c9-a395d9454684",
+            "version": "KqlParameterItem/1.0",
+            "name": "AuditEventID",
+            "type": 1,
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "value": ""
+          },
+          {
+            "id": "ea72df7f-38ac-4ad1-9eb0-d8150d6c9a7b",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 300000
+                },
+                {
+                  "durationMs": 900000
+                },
+                {
+                  "durationMs": 1800000
+                },
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2419200000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "value": {
+              "durationMs": 7776000000
+            }
+          },
+          {
+            "id": "a5e9420e-8c51-4bf3-b648-fe6820556d49",
+            "version": "KqlParameterItem/1.0",
+            "name": "TargetID",
+            "type": 1
+          },
+          {
+            "id": "37845fd4-8ac3-433b-ba5b-0c8c16e9513e",
+            "version": "KqlParameterItem/1.0",
+            "name": "Target",
+            "type": 1,
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "value": ""
+          },
+          {
+            "id": "4eb1ae67-4a85-4f13-8653-fad144005a45",
+            "version": "KqlParameterItem/1.0",
+            "name": "User",
+            "type": 1
+          },
+          {
+            "id": "a2ea1813-322c-4735-b628-f044320d407d",
+            "version": "KqlParameterItem/1.0",
+            "name": "Time",
+            "type": 1
+          },
+          {
+            "id": "b7293100-3d8b-4a1d-93d6-6b29d7a9bc69",
+            "version": "KqlParameterItem/1.0",
+            "name": "Operation",
+            "type": 1
+          },
+          {
+            "id": "a3098bbf-af8f-413c-b939-684389b8d453",
+            "version": "KqlParameterItem/1.0",
+            "name": "OperationType",
+            "type": 1,
+            "query": "IntuneAuditLogs\n| where parse_json(Properties).AuditEventId == tostring(\"{AuditEventID}\")\n| project OperationName\n",
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "dbe2a317-2911-4df4-b712-e771a3fb2a7f",
+            "version": "KqlParameterItem/1.0",
+            "name": "ActionType",
+            "type": 1,
+            "query": "IntuneAuditLogs\r\n| where parse_json(Properties).AuditEventId == (\"{AuditEventID}\")\r\n| extend EventType = iif(OperationName has \"retire\" or OperationName has \"wipe\" or OperationName has \"delete\",\"Warn\",iif(OperationName has \"patch\",\"Update\",\"Info\"))\r\n| project EventType\r\n",
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "e9afcabf-e810-4e99-a4b8-5ed2f9c5f4b6",
+            "version": "KqlParameterItem/1.0",
+            "name": "APIPermissions",
+            "label": "API Permissions",
+            "type": 1,
+            "query": "IntuneAuditLogs\r\n| where parse_json(Properties).AuditEventId == (\"{AuditEventID}\")\r\n| extend APIPermissions = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).Actor)).UserPermissions))[0])\r\n| project APIPermissions",
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          },
+          {
+            "id": "ff805a16-4249-4db5-b89f-172c00ec8d8e",
+            "version": "KqlParameterItem/1.0",
+            "name": "AuditType",
+            "type": 1,
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "conditionalVisibility": {
+        "parameterName": "ShowParams",
+        "comparison": "isEqualTo",
+        "value": "True"
+      },
+      "name": "Audit Event Params"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "## Audit Event Details\n\nBelow are details of the {Target} action initiated against {TargetID}",
+              "style": "warning"
+            },
+            "conditionalVisibility": {
+              "parameterName": "ActionType",
+              "comparison": "isEqualTo",
+              "value": "Warn"
+            },
+            "name": "Create Notice -Warning"
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "## Audit Event Details\n\nBelow are details of the {Target} action initiated against {TargetID}",
+              "style": "info"
+            },
+            "conditionalVisibility": {
+              "parameterName": "ActionType",
+              "comparison": "isEqualTo",
+              "value": "Info"
+            },
+            "name": "Create Notice - Sync"
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "## Audit Event Details\n\nBelow are details of the {Target} action initiated against {TargetID}",
+              "style": "success"
+            },
+            "conditionalVisibility": {
+              "parameterName": "ActionType",
+              "comparison": "isEqualTo",
+              "value": "Update"
+            },
+            "name": "Create Notice - Update"
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "<table class=\"tg\">\r\n<thead>\r\n  <tr>\r\n    <th class=\"tg-0lax\" colspan=\"2\">Audit Event Information</th>\r\n  </tr>\r\n</thead>\r\n<tbody>\r\n  <tr>\r\n    <td class=\"tg-0lax\"><strong>Target</strong></td>\r\n    <td class=\"tg-0lax\">{Operation}</td>\r\n  </tr>\r\n    <tr>\r\n    <td class=\"tg-0lax\"><strong>Application</strong></td>\r\n    <td class=\"tg-0lax\">{User}</td>\r\n</tr>\r\n    <tr>\r\n    <td class=\"tg-0lax\"><strong>API Permissions</strong></td>\r\n    <td class=\"tg-0lax\">{APIPermissions}</td>\r\n  </tr>\r\n    <td class=\"tg-0lax\"><strong>Time</strong></td>\r\n    <td class=\"tg-0lax\">{Time}</td>\r\n  </tr>\r\n    </tr>\r\n    <td class=\"tg-0lax\"><strong>Audit Event ID</strong></td>\r\n    <td class=\"tg-0lax\">{AuditEventID}</td>\r\n  </tr>\r\n</tbody>\r\n</table>"
+            },
+            "conditionalVisibility": {
+              "parameterName": "AuditType",
+              "comparison": "isEqualTo",
+              "value": "AppRegistration"
+            },
+            "name": "Policy Change Summary - App",
+            "styleSettings": {
+              "margin": "10px",
+              "padding": "10px"
+            }
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "<table class=\"tg\">\r\n<thead>\r\n  <tr>\r\n    <th class=\"tg-0lax\" colspan=\"2\">Audit Event Information</th>\r\n  </tr>\r\n</thead>\r\n<tbody>\r\n  <tr>\r\n    <td class=\"tg-0lax\"><strong>Target</strong></td>\r\n    <td class=\"tg-0lax\">{Operation}</td>\r\n  </tr>\r\n    <tr>\r\n    <td class=\"tg-0lax\"><strong>Administrative User</strong></td>\r\n    <td class=\"tg-0lax\">{User}</td>\r\n</tr>\r\n    <td class=\"tg-0lax\"><strong>Time</strong></td>\r\n    <td class=\"tg-0lax\">{Time}</td>\r\n  </tr>\r\n    </tr>\r\n    <td class=\"tg-0lax\"><strong>Audit Event ID</strong></td>\r\n    <td class=\"tg-0lax\">{AuditEventID}</td>\r\n  </tr>\r\n</tbody>\r\n</table>"
+            },
+            "conditionalVisibility": {
+              "parameterName": "AuditType",
+              "comparison": "isEqualTo",
+              "value": "AdminUser"
+            },
+            "name": "Policy Change Summary ",
+            "styleSettings": {
+              "margin": "10px",
+              "padding": "10px"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "IntuneAuditLogs\r\n| where parse_json(Properties).AuditEventId == \"{AuditEventID}\"\r\n| extend Settings = (parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[0].ModifiedProperties)))\r\n| extend Target = (parse_json(tostring(parse_json(tostring(parse_json(Properties).Targets))[1].ModifiedProperties)))\r\n| extend TargetObjectID = tostring(parse_json(tostring(parse_json(Properties).TargetObjectIds))[0])\r\n| extend TargetDisplayName = tostring(parse_json(tostring(parse_json(Properties).TargetDisplayNames))[0])\r\n| extend UserPrincipalName = tostring(parse_json(tostring(parse_json(Properties).Actor)).UPN)\r\n| project Settings, Target, TargetObjectID, TargetDisplayName, OperationName\r\n| mv-expand Settings, Target\r\n| evaluate bag_unpack(Settings)\r\n| evaluate bag_unpack(Target)\r\n| extend OldValues = \"null\"\r\n| project OperationName, Name, TargetDisplayName, New, column_ifexists(\"Old\",[\"Old\"] = OldValues)\r\n",
+              "size": 3,
+              "title": "Audit Event Details",
+              "color": "blue",
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "table",
+              "tileSettings": {
+                "showBorder": false
+              }
+            },
+            "name": "Audit Event Details",
+            "styleSettings": {
+              "margin": "10px",
+              "padding": "10px"
+            }
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "ActionType",
+        "comparison": "isNotEqualTo"
+      },
+      "name": "Policy Change Details",
+      "styleSettings": {
+        "showBorder": true
+      }
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
