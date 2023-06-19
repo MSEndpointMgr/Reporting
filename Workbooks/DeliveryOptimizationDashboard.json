@@ -4,7 +4,7 @@
     {
       "type": 1,
       "content": {
-        "json": "<img src=\"https://msendpointmgr.com/wp-content/uploads/2022/03/MSEndpoingMgrSmall.png\" height=\"100\">\n\n# Delivery Optimization Dashboard\n---\n\nMore information on delivery optimization can be found here - https://docs.microsoft.com/en-us/windows/deployment/update/waas-delivery-optimization \n\nThe following URL's should be whitelisted for communications;\n\n- *.download.windowsupdate.com \n- *.windowsupdate.com\n- *.dl.delivery.mp.microsoft.com\n- *.emdl.ws.microsoft.com\n\nMore information on client-server communications can be found here - https://docs.microsoft.com/en-us/windows/deployment/do/delivery-optimization-workflow"
+        "json": "<img src=\"https://msendpointmgr.com/wp-content/uploads/2022/03/MSEndpoingMgrSmall.png\" height=\"100\">\n\n# Delivery Optimization Dashboard\n---\n\nMore information on delivery optimization can be found here - https://learn.microsoft.com/en-us/windows/deployment/do/waas-delivery-optimization \n\nThe following URL's should be whitelisted for communications;\n\n- *.download.windowsupdate.com \n- *.windowsupdate.com\n- *.dl.delivery.mp.microsoft.com\n- *.emdl.ws.microsoft.com\n\nMore information on client-server communications can be found here - https://learn.microsoft.com/en-us/windows/deployment/do/delivery-optimization-workflow"
       },
       "customWidth": "60",
       "name": "text - 2"
@@ -13,7 +13,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "UCClient\r\n| extend URL = \"https://docs.microsoft.com/en-us/azure/azure-monitor/reference/tables/ucclientupdatestatus\"\r\n| summarize arg_max(TimeGenerated,Type, URL)\r\n| union (UCClientReadinessStatus\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/azure/azure-monitor/reference/tables/ucclientreadinessstatus\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))\r\n| union (UCClientUpdateStatus\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/azure/azure-monitor/reference/tables/ucclientupdatestatus\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))\r\n| union (UCDeviceAlert\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/azure/azure-monitor/reference/tables/ucdevicealert\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))\r\n| union (UCServiceUpdateStatus\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/azure/azure-monitor/reference/tables/ucserviceupdatestatus\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))\r\n| union (UCUpdateAlert\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/azure/azure-monitor/reference/tables/ucupdatealert\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))  \r\n| union (WaaSDeploymentStatus\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/windows/deployment/update/update-compliance-schema-waasdeploymentstatus\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))\r\n| union (WaaSUpdateStatus\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/windows/deployment/update/update-compliance-schema-waasupdatestatus\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))\r\n| union (WUDOAggregatedStatus\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/windows/deployment/update/update-compliance-schema-wudoaggregatedstatus\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))\r\n| union (WUDOStatus\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/windows/deployment/update/update-compliance-schema-wudostatus\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))\r\n| where isnotempty(Type)\r\n| project Type, TimeGenerated, URL\r\n| sort by TimeGenerated asc",
+        "query": "UCClient\r\n| extend URL = \"https://learn.microsoft.com/en-us/windows/deployment/update/wufb-reports-schema-ucclientupdatestatus\" \r\n| summarize arg_max(TimeGenerated,Type, URL) \r\n| union (UCClientReadinessStatus | extend URL = \"https://learn.microsoft.com/en-us/windows/deployment/update/wufb-reports-schema-ucclientreadinessstatus\" | summarize arg_max(TimeGenerated,Type,URL)) \r\n| union (UCClientUpdateStatus | extend URL = \"https://learn.microsoft.com/en-us/windows/deployment/update/wufb-reports-schema-ucclientupdatestatus\" | summarize arg_max(TimeGenerated,Type,URL)) \r\n| union (UCDeviceAlert | extend URL = \"https://learn.microsoft.com/en-us/windows/deployment/update/wufb-reports-schema-ucdevicealert\" | summarize arg_max(TimeGenerated,Type,URL)) \r\n| union (UCServiceUpdateStatus | extend URL = \"https://learn.microsoft.com/en-us/windows/deployment/update/wufb-reports-schema-ucserviceupdatestatus\" | summarize arg_max(TimeGenerated,Type,URL)) \r\n| union (UCUpdateAlert | extend URL = \"https://learn.microsoft.com/en-us/windows/deployment/update/wufb-reports-schema-ucupdatealert\" | summarize arg_max(TimeGenerated,Type,URL)) \r\n| union (UCClientUpdateStatus | extend URL = \"https://learn.microsoft.com/en-us/windows/deployment/update/wufb-reports-schema-ucclientupdatestatus\" | summarize arg_max(TimeGenerated,Type,URL)) \r\n| union (UCDOAggregatedStatus | extend URL = \"https://learn.microsoft.com/en-us/windows/deployment/update/wufb-reports-schema-ucdoaggregatedstatus\" | summarize arg_max(TimeGenerated,Type,URL)) \r\n| union (UCDOStatus | extend URL = \"https://learn.microsoft.com/en-us/windows/deployment/update/wufb-reports-schema-ucdostatus\" | summarize arg_max(TimeGenerated,Type,URL)) \r\n| where isnotempty(Type) | project Type, TimeGenerated, URL \r\n| sort by TimeGenerated asc",
         "size": 3,
         "timeContext": {
           "durationMs": 604800000
@@ -158,7 +158,7 @@
                 {
                   "type": 1,
                   "content": {
-                    "json": "# Update Sources for last 30 days\r\n-----\r\nThe below statistics show the sources for update content across all devices. Downloads from the CDN and peers are determined by delivery optimization policies on your clients. \r\n\r\nMore information on delivery optimization can be found here - https://docs.microsoft.com/en-us/windows/deployment/update/waas-delivery-optimization ",
+                    "json": "# Update Sources for last 30 days\r\n-----\r\nThe below statistics show the sources for update content across all devices. Downloads from the CDN and peers are determined by delivery optimization policies on your clients. \r\n\r\nMore information on delivery optimization can be found here - https://learn.microsoft.com/en-us/windows/deployment/do/waas-delivery-optimization",
                     "style": "info"
                   },
                   "name": "text - 0"
@@ -167,7 +167,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "WUDOStatus\r\n| summarize Count = dcount(ComputerID, 4) by DownloadMode, TimeGenerated",
+                    "query": "UCDOStatus\r\n| summarize Count = dcount(AzureADDeviceId, 4) by DownloadMode, TimeGenerated",
                     "size": 1,
                     "showAnalytics": true,
                     "title": "Delivery Optimization Mode - Over Time - {TimeRange}",
@@ -188,7 +188,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BWOptPercent28Days, DeviceCount\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers)\r\n| sort by BytesFromCDN",
+                          "query": "UCDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BWOptPercent28Days, DeviceCount\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers)\r\n| sort by BytesFromCDN",
                           "size": 3,
                           "showAnalytics": true,
                           "title": "Content Types - Last 30 days",
@@ -213,7 +213,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOStatus \r\n| summarize arg_max(TimeGenerated, *) by ComputerID\r\n| summarize Count = dcount(ComputerID, 4) by DownloadMode, DownloadModeSrc\r\n| project [\"Download Mode\"] = DownloadMode, [\"Download Source\"] = DownloadModeSrc, [\"Device Count\"] = Count\r\n| order by [\"Device Count\"]",
+                          "query": "UCDOStatus \r\n| summarize arg_max(TimeGenerated, *) by AzureADDeviceId\r\n| summarize Count = dcount(AzureADDeviceId, 4) by DownloadMode, DownloadModeSrc\r\n| project [\"Download Mode\"] = DownloadMode, [\"Download Source\"] = DownloadModeSrc, [\"Device Count\"] = Count\r\n| order by [\"Device Count\"]",
                           "size": 3,
                           "showAnalytics": true,
                           "title": "Delivery Optimization Mode",
@@ -231,7 +231,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| extend BytesFromCDNGB = format_bytes(BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(BytesFromPeers, 2)\r\n| extend [\"Total Bytes\"] = format_bytes((BytesFromCDN + BytesFromPeers),2, \"TB\")\r\n| sort by BytesFromCDN desc\r\n| project [\"Content Type\"] = ContentType, [\"Bytes from CDN\"] = BytesFromCDNGB, [\"Bytes from Peers\"] = BytesFromPeersGB, [\"Total Bytes\"], [\"Device Count\"] = DeviceCount\r\n\r\n",
+                          "query": "UCDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| extend BytesFromCDNGB = format_bytes(BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(BytesFromPeers, 2)\r\n| extend [\"Total Bytes\"] = format_bytes((BytesFromCDN + BytesFromPeers),2, \"TB\")\r\n| sort by BytesFromCDN desc\r\n| project [\"Content Type\"] = ContentType, [\"Bytes from CDN\"] = BytesFromCDNGB, [\"Bytes from Peers\"] = BytesFromPeersGB, [\"Total Bytes\"], [\"Device Count\"] = DeviceCount\r\n\r\n",
                           "size": 3,
                           "showAnalytics": true,
                           "title": "Content Break Down - Previous 30 Days",
@@ -275,7 +275,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| project ContentType, BytesFromCDN, BytesFromPeers\r\n| sort by BytesFromCDN",
+                          "query": "UCDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| project ContentType, BytesFromCDN, BytesFromPeers\r\n| sort by BytesFromCDN",
                           "size": 0,
                           "title": "Content Types - By Source",
                           "timeContext": {
@@ -356,7 +356,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| extend BytesFromCDNGB = format_bytes(BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(BytesFromPeers, 2)\r\n| sort by BytesFromCDN desc \r\n| extend CDNDistributionPercentage = todecimal(round((100 - BWOptPercent28Days),2))\r\n| extend PeerDistributionPercentage = todecimal(round((BWOptPercent28Days),2))\r\n| summarize [\"CDN Percentage\"] = avg(todecimal(round((CDNDistributionPercentage),1))), [\"Peer Percentage\"] = avg(todecimal(round((PeerDistributionPercentage),1)))",
+                          "query": "UCDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| extend BytesFromCDNGB = format_bytes(BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(BytesFromPeers, 2)\r\n| sort by BytesFromCDN desc \r\n| extend CDNDistributionPercentage = todecimal(round((100 - BWOptPercent28Days),2))\r\n| extend PeerDistributionPercentage = todecimal(round((BWOptPercent28Days),2))\r\n| summarize [\"CDN Percentage\"] = avg(todecimal(round((CDNDistributionPercentage),1))), [\"Peer Percentage\"] = avg(todecimal(round((PeerDistributionPercentage),1)))",
                           "size": 3,
                           "title": "Delivery Optimization Split",
                           "timeContext": {
@@ -411,7 +411,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOAggregatedStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers)\r\n| extend Total = (sum_BytesFromCDN + sum_BytesFromPeers)\r\n| project pCDN = (todouble(sum_BytesFromCDN) * 100 / todouble(Total)) , pPeers = (todouble(sum_BytesFromPeers) * 100 / todouble(Total))\r\n| evaluate narrow()\r\n| extend percent = '%'\r\n| project Column, todouble (Value)",
+                          "query": "UCDOAggregatedStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers)\r\n| extend Total = (sum_BytesFromCDN + sum_BytesFromPeers)\r\n| project pCDN = (todouble(sum_BytesFromCDN) * 100 / todouble(Total)) , pPeers = (todouble(sum_BytesFromPeers) * 100 / todouble(Total))\r\n| evaluate narrow()\r\n| extend percent = '%'\r\n| project Column, todouble (Value)",
                           "size": 3,
                           "title": "Content Distribution",
                           "timeContext": {
@@ -451,7 +451,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| extend BytesFromCDNGB = format_bytes(BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(BytesFromPeers, 2)\r\n| extend TotalRawBytes = (BytesFromGroupPeers + BytesFromPeers)\r\n| summarize [\"Bandwidth Saving\"] = format_bytes(sum(TotalRawBytes),2)\r\n| extend Type = \"Bandwidth Savings\"",
+                          "query": "UCDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| extend BytesFromCDNGB = format_bytes(BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(BytesFromPeers, 2)\r\n| extend TotalRawBytes = (BytesFromGroupPeers + BytesFromPeers)\r\n| summarize [\"Bandwidth Saving\"] = format_bytes(sum(TotalRawBytes),2)\r\n| extend Type = \"Bandwidth Savings\"",
                           "size": 3,
                           "timeContext": {
                             "durationMs": 2592000000
@@ -501,7 +501,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOAggregatedStatus\r\n| where TimeGenerated between (ago(30d) .. ago(0d) )\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, TimeGenerated\r\n\r\n",
+                          "query": "UCDOAggregatedStatus\r\n| where TimeGenerated between (ago(30d) .. ago(0d) )\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, TimeGenerated\r\n\r\n",
                           "size": 1,
                           "title": "Update Sources Trend Last 30 days",
                           "queryType": 0,
@@ -531,7 +531,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOAggregatedStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, TimeGenerated",
+                          "query": "UCDOAggregatedStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, TimeGenerated",
                           "size": 1,
                           "title": "Update Sources Trend Last 7 days",
                           "timeContext": {
@@ -559,7 +559,7 @@
                         "type": 3,
                         "content": {
                           "version": "KqlItem/1.0",
-                          "query": "WUDOAggregatedStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, TimeGenerated",
+                          "query": "UCDOAggregatedStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, TimeGenerated",
                           "size": 1,
                           "title": "Update Sources Trend Last 48 hours",
                           "timeContext": {
@@ -611,7 +611,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WUDOStatus\r\n| summarize arg_max(TimeGenerated, *) by ComputerID\r\n| summarize Count = dcount(ComputerID, 4) by DownloadMode, DownloadModeSrc\r\n| project [\"Download Mode\"] = DownloadMode, [\"Download Source\"] = DownloadModeSrc, [\"Device Count\"] = Count\r\n| order by [\"Device Count\"]",
+              "query": "UCDOStatus\r\n| summarize arg_max(TimeGenerated, *) by AzureADDeviceId\r\n| summarize Count = dcount(AzureADDeviceId, 4) by DownloadMode, DownloadModeSrc\r\n| project [\"Download Mode\"] = DownloadMode, [\"Download Source\"] = DownloadModeSrc, [\"Device Count\"] = Count\r\n| order by [\"Device Count\"]",
               "size": 3,
               "title": "Delivery Optimization Mode",
               "timeContext": {
@@ -638,7 +638,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WUDOStatus\r\n| summarize sum(BytesFromPeers), sum(BytesFromCDN), sum(BytesFromIntPeers), sum(BytesFromGroupPeers)\r\n| extend Total = (sum_BytesFromPeers + sum_BytesFromCDN + sum_BytesFromIntPeers + sum_BytesFromGroupPeers)\r\n| project Peers = (todouble(sum_BytesFromPeers) * 100 / todouble(Total)) , CDN = (todouble(sum_BytesFromCDN) * 100 / todouble(Total)), IntPeers = (todouble(sum_BytesFromIntPeers) * 100 / todouble(Total)), GroupPeers = (todouble(sum_BytesFromGroupPeers) * 100 / todouble(Total))\r\n| evaluate narrow()\r\n| extend percent = '%'\r\n| project Column, todouble (Value)\r\n",
+              "query": "UCDOStatus\r\n| summarize sum(BytesFromPeers), sum(BytesFromCDN), sum(BytesFromIntPeers), sum(BytesFromGroupPeers)\r\n| extend Total = (sum_BytesFromPeers + sum_BytesFromCDN + sum_BytesFromIntPeers + sum_BytesFromGroupPeers)\r\n| project Peers = (todouble(sum_BytesFromPeers) * 100 / todouble(Total)) , CDN = (todouble(sum_BytesFromCDN) * 100 / todouble(Total)), IntPeers = (todouble(sum_BytesFromIntPeers) * 100 / todouble(Total)), GroupPeers = (todouble(sum_BytesFromGroupPeers) * 100 / todouble(Total))\r\n| evaluate narrow()\r\n| extend percent = '%'\r\n| project Column, todouble (Value)\r\n",
               "size": 3,
               "title": "DO Content Percentage - By Source",
               "timeContextFromParameter": "TimeRange",
@@ -681,7 +681,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WUDOStatus\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BWOptPercent28Days\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers)\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers), sum(TotalBytes) by ContentType\r\n| order by ContentType\r\n| project sum_BytesFromPeers, sum_BytesFromCDN, ContentType",
+              "query": "UCDOStatus\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BWOptPercent28Days\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers)\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers), sum(TotalBytes) by ContentType\r\n| order by ContentType\r\n| project sum_BytesFromPeers, sum_BytesFromCDN, ContentType",
               "size": 3,
               "title": "DO Traffic by Content Type",
               "timeContextFromParameter": "TimeRange",
@@ -700,7 +700,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WUDOStatus\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BWOptPercent28Days\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers)\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers), sum(TotalBytes) by ContentType\r\n| order by ContentType\r\n| project sum_BytesFromPeers, sum_BytesFromCDN, ContentType",
+              "query": "UCDOStatus\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BWOptPercent28Days\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers)\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers), sum(TotalBytes) by ContentType\r\n| order by ContentType\r\n| project sum_BytesFromPeers, sum_BytesFromCDN, ContentType",
               "size": 2,
               "title": "Content Types - By Source",
               "timeContextFromParameter": "TimeRange",
@@ -775,7 +775,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "WUDOStatus\r\n| summarize sum(BytesFromPeers), sum(BytesFromCDN), sum(BytesFromIntPeers), sum(BytesFromGroupPeers) by TimeGenerated, ComputerID\r\n| extend BytesFromCDNGB = format_bytes(sum_BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(sum_BytesFromPeers, 2)\r\n| extend TotalRawBytes = (sum_BytesFromPeers + sum_BytesFromIntPeers + sum_BytesFromGroupPeers)\r\n| summarize [\"Bandwidth Saving\"] = format_bytes(sum(TotalRawBytes),2)\r\n| extend Type = \"Bandwidth Savings\"",
+                    "query": "UCDOStatus\r\n| summarize sum(BytesFromPeers), sum(BytesFromCDN), sum(BytesFromIntPeers), sum(BytesFromGroupPeers) by TimeGenerated, AzureADDeviceId\r\n| extend BytesFromCDNGB = format_bytes(sum_BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(sum_BytesFromPeers, 2)\r\n| extend TotalRawBytes = (sum_BytesFromPeers + sum_BytesFromIntPeers + sum_BytesFromGroupPeers)\r\n| summarize [\"Bandwidth Saving\"] = format_bytes(sum(TotalRawBytes),2)\r\n| extend Type = \"Bandwidth Savings\"",
                     "size": 3,
                     "title": "Bandwidth Saved",
                     "timeContextFromParameter": "TimeRange",
@@ -824,7 +824,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "WUDOStatus\r\n| summarize sum(PeersSuccessCount), sum(PeersCannotConnectCount) by ContentType\r\n| project ContentType, sum_PeersCannotConnectCount, sum_PeersSuccessCount\r\n| order by sum_PeersSuccessCount desc",
+                    "query": "UCDOStatus\r\n| summarize sum(PeersSuccessCount), sum(PeersCannotConnectCount) by ContentType\r\n| project ContentType, sum_PeersCannotConnectCount, sum_PeersSuccessCount\r\n| order by sum_PeersSuccessCount desc",
                     "size": 3,
                     "timeContextFromParameter": "TimeRange",
                     "queryType": 0,
@@ -870,7 +870,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "WUDOStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers), sum(BytesFromIntPeers), sum(BytesFromGroupPeers) by TimeGenerated\r\n| extend TotalPeerDownloads = (sum_BytesFromPeers + sum_BytesFromIntPeers + sum_BytesFromGroupPeers)\r\n| extend TotalCDNDownloads = sum_BytesFromCDN\r\n| project TimeGenerated, [\"Total Peer Downloads\"] = format_bytes(TotalPeerDownloads, 0, \"GB\"), [\"Total CDN Downloads\"] = format_bytes(TotalCDNDownloads, 0, \"GB\")\r\n| sort by TimeGenerated desc",
+                    "query": "UCDOStatus\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers), sum(BytesFromIntPeers), sum(BytesFromGroupPeers) by TimeGenerated\r\n| extend TotalPeerDownloads = (sum_BytesFromPeers + sum_BytesFromIntPeers + sum_BytesFromGroupPeers)\r\n| extend TotalCDNDownloads = sum_BytesFromCDN\r\n| project TimeGenerated, [\"Total Peer Downloads\"] = format_bytes(TotalPeerDownloads, 0, \"GB\"), [\"Total CDN Downloads\"] = format_bytes(TotalCDNDownloads, 0, \"GB\")\r\n| sort by TimeGenerated desc",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "DO Content Source Split",
@@ -939,7 +939,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WUDOStatus\r\n| summarize sum(BytesFromPeers), sum(BytesFromCDN), sum(BytesFromIntPeers), sum(BytesFromGroupPeers) by TimeGenerated",
+              "query": "UCDOStatus\r\n| summarize sum(BytesFromPeers), sum(BytesFromCDN), sum(BytesFromIntPeers), sum(BytesFromGroupPeers) by TimeGenerated",
               "size": 1,
               "aggregation": 5,
               "title": "DO Source Distribution Figures - By Type",
@@ -978,7 +978,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "let AzureDeviceIDs = UCClient\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| project GlobalDeviceId, AzureADDeviceId;\r\nlet IntuneDeviceIDs = IntuneDevices \r\n| summarize arg_max(TimeGenerated, *) by DeviceId\r\n| project DeviceId, DeviceName, ReferenceId;\r\nWUDOStatus\r\n| summarize arg_max(TimeGenerated, *) by ComputerID, ContentType \r\n| join kind=innerunique AzureDeviceIDs on $left.ComputerID == $right.GlobalDeviceId \r\n| join kind=innerunique IntuneDeviceIDs on $left.AzureADDeviceId == $right.ReferenceId\r\n| project TimeGenerated, DeviceName, DeviceId, OSName, OSVersion, DownloadMode, ContentDownloadMode, PeeringStatus, ContentType, TotalTimeForDownload, TotalTransfers, PeerEligibleTransfers, NoPeersCount, PeersUnknownCount, PeersSuccessCount, BytesFromCDN, BytesFromPeers, BytesFromIntPeers, BytesFromGroupPeers, BWOptPercent7Days, BWOptPercent28Days, AzureADDeviceId\r\n| order by TimeGenerated, DeviceName desc",
+              "query": "let AzureDeviceIDs = UCClient\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| project GlobalDeviceId, AzureADDeviceId;\r\nlet IntuneDeviceIDs = IntuneDevices \r\n| summarize arg_max(TimeGenerated, *) by DeviceId\r\n| project DeviceId, DeviceName, ReferenceId;\r\nWUDOStatus\r\n| summarize arg_max(TimeGenerated, *) by AzureADDeviceId, ContentType \r\n| join kind=innerunique AzureDeviceIDs on $left.AzureADDeviceId == $right.GlobalDeviceId \r\n| join kind=innerunique IntuneDeviceIDs on $left.AzureADDeviceId == $right.ReferenceId\r\n| project TimeGenerated, DeviceName, DeviceId, OSName, OSVersion, DownloadMode, ContentDownloadMode, PeeringStatus, ContentType, TotalTimeForDownload, TotalTransfers, PeerEligibleTransfers, NoPeersCount, PeersUnknownCount, PeersSuccessCount, BytesFromCDN, BytesFromPeers, BytesFromIntPeers, BytesFromGroupPeers, BWOptPercent7Days, BWOptPercent28Days, AzureADDeviceId\r\n| order by TimeGenerated, DeviceName desc",
               "size": 0,
               "showAnalytics": true,
               "title": "Peering State",
