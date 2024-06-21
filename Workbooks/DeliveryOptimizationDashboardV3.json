@@ -1,0 +1,1727 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 1,
+        "content": {
+          "json": "# Delivery Optimization Dashboard\n---\n\nOriginal DO Dashboard created by [Maurice Daly @ MSEndpointMgr](https://msendpointmgr.com/2022/03/25/delivery-optimization-configuration-monitoring/)\n<br>Additions from James Robinson (https://skiptotheendpoint.co.uk/)\n\n---\n\nMore information on delivery optimization can be found here - https://docs.microsoft.com/en-us/windows/deployment/update/waas-delivery-optimization \n\nThe following URL's should be allowlisted for communications;\n\n- *.prod.do.dsp.mp.microsoft.com\n- *.windowsupdate.com\n- *.dl.delivery.mp.microsoft.com\n- *.emdl.ws.microsoft.com\n\nMore information on client-server communications can be found here - https://docs.microsoft.com/en-us/windows/deployment/do/delivery-optimization-workflow"
+        },
+        "customWidth": "60",
+        "name": "Dashboard Description"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "UCClient\r\n| extend URL = \"https://docs.microsoft.com/en-us/azure/azure-monitor/reference/tables/ucclientupdatestatus\"\r\n| summarize arg_max(TimeGenerated,Type, URL)\r\n| union (UCDOAggregatedStatus\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/windows/deployment/update/update-compliance-schema-UCDOAggregatedStatus\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))\r\n| union (UCDOStatus\r\n\t| extend URL = \"https://docs.microsoft.com/en-us/windows/deployment/update/update-compliance-schema-UCDOStatus\"\r\n    | summarize arg_max(TimeGenerated,Type,URL))\r\n| union (DeliveryOptimizationConfig_CL\r\n    | summarize arg_max(TimeGenerated,Type))\r\n| union (DeliveryOptimizationContentStats_CL\r\n    | summarize arg_max(TimeGenerated,Type))\r\n| union (DeliveryOptimizationMonthlyPerfStats_CL\r\n    | summarize arg_max(TimeGenerated,Type))\r\n| union (DeliveryOptimizationMonthlyPerfStats_CL\r\n    | summarize arg_max(TimeGenerated,Type))\r\n| union (DeliveryOptimizationSettings_CL \r\n    | summarize arg_max(TimeGenerated,Type))\r\n| where isnotempty(Type)\r\n| project Type, TimeGenerated, URL\r\n| sort by TimeGenerated asc",
+          "size": 3,
+          "timeContext": {
+            "durationMs": 604800000
+          },
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "Type",
+                "formatter": 1,
+                "formatOptions": {
+                  "linkColumn": "URL",
+                  "linkTarget": "Url"
+                },
+                "tooltipFormat": {
+                  "tooltip": "Click here to view the Microsoft documentation on this log type"
+                }
+              },
+              {
+                "columnMatch": "URL",
+                "formatter": 5
+              }
+            ],
+            "sortBy": [
+              {
+                "itemKey": "$gen_number_Type_0",
+                "sortOrder": 1
+              }
+            ],
+            "labelSettings": [
+              {
+                "columnId": "Type",
+                "label": "Log File Name"
+              },
+              {
+                "columnId": "TimeGenerated",
+                "label": "Last Updated"
+              }
+            ]
+          },
+          "sortBy": [
+            {
+              "itemKey": "$gen_number_Type_0",
+              "sortOrder": 1
+            }
+          ]
+        },
+        "customWidth": "40",
+        "name": "Data Grid - Log Dates"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "parameters": [
+            {
+              "id": "ca4db990-345c-4c08-952f-7134295026c4",
+              "version": "KqlParameterItem/1.0",
+              "name": "TimeRange",
+              "type": 4,
+              "value": {
+                "durationMs": 5184000000
+              },
+              "typeSettings": {
+                "selectableValues": [
+                  {
+                    "durationMs": 172800000
+                  },
+                  {
+                    "durationMs": 259200000
+                  },
+                  {
+                    "durationMs": 604800000
+                  },
+                  {
+                    "durationMs": 1209600000
+                  },
+                  {
+                    "durationMs": 2419200000
+                  },
+                  {
+                    "durationMs": 2592000000
+                  },
+                  {
+                    "durationMs": 5184000000
+                  },
+                  {
+                    "durationMs": 7776000000
+                  }
+                ]
+              },
+              "timeContext": {
+                "durationMs": 86400000
+              }
+            },
+            {
+              "id": "2e1c0d82-7276-4864-bbca-64cb31b04e2a",
+              "version": "KqlParameterItem/1.0",
+              "name": "ContentTypes",
+              "label": "Content Types",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "UCDOStatus\r\n| distinct ContentType",
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ],
+                "showDefault": false
+              },
+              "timeContext": {
+                "durationMs": 604800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "defaultValue": "value::all",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "value": [
+                "value::all"
+              ]
+            },
+            {
+              "id": "0f21d626-1ef1-4b85-95f6-259e7080fe2f",
+              "version": "KqlParameterItem/1.0",
+              "name": "OtherContentSources",
+              "label": "Other Content Sources",
+              "type": 7,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "UCDOStatus\r\n| where ContentType == \"Other\"\r\n| distinct DownloadModeSrc",
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ],
+                "showDefault": false
+              },
+              "timeContext": {
+                "durationMs": 604800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "defaultValue": "value::all",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "value": [
+                "value::all"
+              ]
+            }
+          ],
+          "style": "pills",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces"
+        },
+        "name": "Parameters"
+      },
+      {
+        "type": 11,
+        "content": {
+          "version": "LinkItem/1.0",
+          "style": "tabs",
+          "links": [
+            {
+              "id": "9c0506fa-9f34-4c2f-a31d-46cb6ef23c5b",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Aggregated Summary  ({TimeRange})",
+              "subTarget": "AggregatedTraffic",
+              "style": "link"
+            },
+            {
+              "id": "cab94c63-1d0e-4a99-bb3c-22ac56710938",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Client DO Statistics",
+              "subTarget": "ClientTraffic",
+              "style": "link"
+            },
+            {
+              "id": "f997f9b9-b95a-461b-beb0-29c4c76f70bf",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Group ID Configuration",
+              "subTarget": "GroupIDs",
+              "style": "link"
+            },
+            {
+              "id": "598405d6-2608-46ff-9907-177ccfbd88ca",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Client Performance Overhead",
+              "subTarget": "ClientOverhead",
+              "style": "link"
+            }
+          ]
+        },
+        "name": "Tabs"
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| summarize count(GlobalDeviceId) by DownloadMode, DownloadModeSrc\r\n| project [\"Download Mode\"] = DownloadMode, [\"Download Source\"] = DownloadModeSrc, [\"Device Count\"] = count_GlobalDeviceId\r\n| order by [\"Device Count\"]",
+                "size": 3,
+                "title": "Delivery Optimization Mode",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "piechart",
+                "chartSettings": {
+                  "showMetrics": false,
+                  "showLegend": true,
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "HTTP+LAN (1)",
+                      "color": "green"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "33",
+              "name": "Delivery Optimization Mode"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize sum(BytesFromPeers), sum(BytesFromCDN), sum(BytesFromCache), sum(BytesFromIntPeers), sum(BytesFromGroupPeers)\r\n| extend Total = (sum_BytesFromPeers + sum_BytesFromCDN + sum_BytesFromCache + sum_BytesFromIntPeers + sum_BytesFromGroupPeers)\r\n| project Peers = (todouble(sum_BytesFromPeers) * 100 / todouble(Total)), CDN = (todouble(sum_BytesFromCDN) * 100 / todouble(Total)), Cache = (todouble(sum_BytesFromCache) * 100 / todouble(Total)), IntPeers = (todouble(sum_BytesFromIntPeers) * 100 / todouble(Total)), GroupPeers = (todouble(sum_BytesFromGroupPeers) * 100 / todouble(Total))\r\n| evaluate narrow()\r\n| extend percent = '%'\r\n| project Column, todouble (Value)\r\n",
+                "size": 3,
+                "title": "DO Content Percentage - By Source",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "piechart",
+                "tileSettings": {
+                  "showBorder": false
+                },
+                "graphSettings": {
+                  "type": 0
+                },
+                "chartSettings": {
+                  "showMetrics": false,
+                  "showLegend": true,
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "Peers",
+                      "color": "green"
+                    },
+                    {
+                      "seriesName": "CDN",
+                      "color": "orange"
+                    },
+                    {
+                      "seriesName": "IntPeers",
+                      "color": "red"
+                    },
+                    {
+                      "seriesName": "GroupPeers",
+                      "color": "greenDarkDark"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "33",
+              "name": "DO Content Percentage - By Source"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BytesFromGroupPeers\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers + BytesFromGroupPeers)\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers), sum(TotalBytes), sum(BytesFromGroupPeers) by ContentType\r\n| order by ContentType\r\n| project sum_BytesFromPeers, sum_BytesFromCDN, sum_BytesFromGroupPeers, ContentType",
+                "size": 3,
+                "title": "DO Traffic by Content Type",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "piechart",
+                "chartSettings": {
+                  "showMetrics": false,
+                  "showLegend": true
+                }
+              },
+              "customWidth": "33",
+              "name": "DO Traffic by Content Type"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| project ContentType, BytesFromCDN, BytesFromPeers, BytesFromCache, BytesFromGroupPeers\r\n| extend TotalBytes = (BytesFromCDN + BytesFromPeers + BytesFromCache + BytesFromGroupPeers)\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers), sum(BytesFromCache), sum(BytesFromGroupPeers), sum(TotalBytes) by ContentType\r\n| order by ContentType\r\n| project sum_BytesFromPeers, sum_BytesFromCDN, sum_BytesFromCache, sum_BytesFromGroupPeers, ContentType",
+                "size": 2,
+                "title": "Content Types - By Source",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "unstackedbar",
+                "tileSettings": {
+                  "showBorder": false,
+                  "titleContent": {
+                    "columnMatch": "ContentType",
+                    "formatter": 1
+                  },
+                  "leftContent": {
+                    "columnMatch": "BytesFromCDN",
+                    "formatter": 12,
+                    "formatOptions": {
+                      "palette": "auto"
+                    },
+                    "numberFormat": {
+                      "unit": 17,
+                      "options": {
+                        "maximumSignificantDigits": 3,
+                        "maximumFractionDigits": 2
+                      }
+                    }
+                  }
+                },
+                "graphSettings": {
+                  "type": 0,
+                  "topContent": {
+                    "columnMatch": "ContentType",
+                    "formatter": 1
+                  },
+                  "centerContent": {
+                    "columnMatch": "BytesFromCDN",
+                    "formatter": 1,
+                    "numberFormat": {
+                      "unit": 17,
+                      "options": {
+                        "maximumSignificantDigits": 3,
+                        "maximumFractionDigits": 2
+                      }
+                    }
+                  }
+                },
+                "chartSettings": {
+                  "xAxis": "ContentType",
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "sum_BytesFromPeers",
+                      "label": "Bytes from Peers",
+                      "color": "green"
+                    },
+                    {
+                      "seriesName": "sum_BytesFromCDN",
+                      "label": "Bytes from CDN",
+                      "color": "orange"
+                    },
+                    {
+                      "seriesName": "sum_BytesFromCache",
+                      "label": "Bytes from Cache",
+                      "color": "blue"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "50",
+              "name": "Content Types - By Source"
+            },
+            {
+              "type": 12,
+              "content": {
+                "version": "NotebookGroup/1.0",
+                "groupType": "editable",
+                "items": [
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize sum(BytesFromPeers), sum(BytesFromCDN), sum(BytesFromCache), sum(BytesFromGroupPeers) by TimeGenerated, GlobalDeviceId\r\n| extend TotalRawBytes = (sum_BytesFromPeers + sum_BytesFromCache + sum_BytesFromGroupPeers)\r\n| summarize [\"Bandwidth Saving\"] = format_bytes(sum(TotalRawBytes),2)\r\n| extend Type = \"Bandwidth Savings\"",
+                      "size": 3,
+                      "title": "Bandwidth Saved",
+                      "timeContextFromParameter": "TimeRange",
+                      "queryType": 0,
+                      "resourceType": "microsoft.operationalinsights/workspaces",
+                      "visualization": "tiles",
+                      "tileSettings": {
+                        "titleContent": {
+                          "columnMatch": "Type",
+                          "formatter": 18,
+                          "formatOptions": {
+                            "thresholdsOptions": "icons",
+                            "thresholdsGrid": [
+                              {
+                                "operator": "Default",
+                                "thresholdValue": null,
+                                "representation": "success",
+                                "text": "{0}{1}"
+                              }
+                            ]
+                          },
+                          "numberFormat": {
+                            "unit": 0,
+                            "options": {
+                              "style": "decimal"
+                            }
+                          }
+                        },
+                        "leftContent": {
+                          "columnMatch": "Bandwidth Saving",
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "style": "decimal"
+                            }
+                          }
+                        },
+                        "showBorder": true,
+                        "sortCriteriaField": "Bandwidth Saving",
+                        "size": "auto"
+                      }
+                    },
+                    "name": "Bandwidth Saved"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize sum(PeersSuccessCount), sum(PeersCannotConnectCount) by ContentType\r\n| project ContentType, sum_PeersCannotConnectCount, sum_PeersSuccessCount\r\n| order by sum_PeersSuccessCount desc",
+                      "size": 3,
+                      "title": "Peering Success Figures",
+                      "timeContextFromParameter": "TimeRange",
+                      "queryType": 0,
+                      "resourceType": "microsoft.operationalinsights/workspaces",
+                      "gridSettings": {
+                        "formatters": [
+                          {
+                            "columnMatch": "sum_PeersCannotConnectCount",
+                            "formatter": 4,
+                            "formatOptions": {
+                              "palette": "red",
+                              "customColumnWidthSetting": "250px"
+                            },
+                            "numberFormat": {
+                              "unit": 17,
+                              "options": {
+                                "style": "decimal",
+                                "useGrouping": true,
+                                "maximumFractionDigits": 2
+                              }
+                            }
+                          },
+                          {
+                            "columnMatch": "sum_PeersSuccessCount",
+                            "formatter": 4,
+                            "formatOptions": {
+                              "palette": "green",
+                              "customColumnWidthSetting": "250px"
+                            },
+                            "numberFormat": {
+                              "unit": 17,
+                              "options": {
+                                "style": "decimal",
+                                "useGrouping": true,
+                                "maximumFractionDigits": 2
+                              }
+                            }
+                          }
+                        ],
+                        "labelSettings": [
+                          {
+                            "columnId": "ContentType",
+                            "label": "Content Type"
+                          },
+                          {
+                            "columnId": "sum_PeersCannotConnectCount",
+                            "label": "Unsuccessful Peer Connections"
+                          },
+                          {
+                            "columnId": "sum_PeersSuccessCount",
+                            "label": "Successful Peer Connections"
+                          }
+                        ]
+                      }
+                    },
+                    "name": "Peering Success Figures"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize sum(BytesFromCDN), sum(BytesFromPeers), sum(BytesFromCache), sum(BytesFromIntPeers), sum(BytesFromGroupPeers) by TimeGenerated\r\n| extend TotalPeerDownloads = (sum_BytesFromPeers + sum_BytesFromIntPeers + sum_BytesFromGroupPeers)\r\n| extend TotalCDNDownloads = sum_BytesFromCDN\r\n| extend TotalCacheDownloads = sum_BytesFromCache\r\n| project TimeGenerated, [\"Total Peer Downloads\"] = format_bytes(TotalPeerDownloads, 0, \"GB\"), [\"Total CDN Downloads\"] = format_bytes(TotalCDNDownloads, 0, \"GB\"), [\"Total Cache Downloads\"] = format_bytes(TotalCacheDownloads, 0, \"GB\")\r\n| sort by TimeGenerated desc",
+                      "size": 3,
+                      "showAnalytics": true,
+                      "title": "DO Content Source Split",
+                      "timeContextFromParameter": "TimeRange",
+                      "queryType": 0,
+                      "resourceType": "microsoft.operationalinsights/workspaces",
+                      "visualization": "table",
+                      "gridSettings": {
+                        "formatters": [
+                          {
+                            "columnMatch": "Total Peer Downloads",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "success",
+                                  "text": "{0}{1}"
+                                }
+                              ],
+                              "customColumnWidthSetting": "25ch"
+                            }
+                          },
+                          {
+                            "columnMatch": "Total CDN Downloads",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "2",
+                                  "text": "{0}{1}"
+                                }
+                              ],
+                              "customColumnWidthSetting": "25ch"
+                            }
+                          },
+                          {
+                            "columnMatch": "Total Cache Downloads",
+                            "formatter": 18,
+                            "formatOptions": {
+                              "thresholdsOptions": "icons",
+                              "thresholdsGrid": [
+                                {
+                                  "operator": "Default",
+                                  "thresholdValue": null,
+                                  "representation": "success",
+                                  "text": "{0}{1}"
+                                }
+                              ],
+                              "customColumnWidthSetting": "25ch"
+                            }
+                          }
+                        ],
+                        "rowLimit": 5
+                      },
+                      "chartSettings": {
+                        "seriesLabelSettings": [
+                          {
+                            "seriesName": "TotalPeerDownloads",
+                            "color": "green"
+                          },
+                          {
+                            "seriesName": "TotalCDNDownloads",
+                            "color": "orange"
+                          },
+                          {
+                            "seriesName": "TotalCacheDownloads",
+                            "color": "blue"
+                          }
+                        ]
+                      }
+                    },
+                    "name": "DO Content Source Split"
+                  }
+                ]
+              },
+              "customWidth": "50",
+              "name": "Right-Side Charts"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize sum(BytesFromPeers), sum(BytesFromCDN), sum(BytesFromCache), sum(BytesFromIntPeers), sum(BytesFromGroupPeers) by TimeGenerated\r\n",
+                "size": 1,
+                "aggregation": 5,
+                "title": "DO Source Distribution Figures - By Type",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "areachart",
+                "chartSettings": {
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "sum_BytesFromPeers",
+                      "label": "Bytes from Peers",
+                      "color": "green"
+                    },
+                    {
+                      "seriesName": "sum_BytesFromCDN",
+                      "label": "Bytes from CDN",
+                      "color": "orange"
+                    },
+                    {
+                      "seriesName": "sum_BytesFromCache",
+                      "label": "Bytes from Cache",
+                      "color": "greenDark"
+                    },
+                    {
+                      "seriesName": "sum_BytesFromIntPeers",
+                      "label": "Bytes from Internet Peers",
+                      "color": "red"
+                    },
+                    {
+                      "seriesName": "sum_BytesFromGroupPeers",
+                      "label": "Bytes from Group Peers",
+                      "color": "greenDarkDark"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "50",
+              "name": "DO Source Distribution Figures - By Type",
+              "styleSettings": {
+                "maxWidth": "50%"
+              }
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "DeliveryOptimizationMonthlyPerfStats_CL\r\n| where isnotempty(MonthStartDate_s) \r\n| summarize sum(todouble(DownloadLanBytes_s)), sum(todouble(DownloadHttpBytes_s)), sum(todouble(DownloadInternetBytes_s)) by MonthStartDate_s, bin(TimeGenerated,1d)",
+                "size": 1,
+                "aggregation": 5,
+                "title": "DO Source Distribution Figures - Local vs Internet (Client Stats)",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "areachart",
+                "chartSettings": {
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "sum_DownloadLanBytes_s",
+                      "color": "green"
+                    },
+                    {
+                      "seriesName": "sum_DownloadHttpBytes_s",
+                      "color": "orange"
+                    },
+                    {
+                      "seriesName": "sum_DownloadInternetBytes_s",
+                      "color": "orangeDark"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "50",
+              "name": "DO Source Distribution Figures - Local vs Internet (Client Stats)",
+              "styleSettings": {
+                "maxWidth": "50%"
+              }
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| summarize sum(TotalTransfers) by ContentType, TimeGenerated  ",
+                "size": 1,
+                "aggregation": 5,
+                "title": "DO Peering Count - By Content",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "timechart",
+                "chartSettings": {
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "sum_BytesFromPeers",
+                      "label": "Bytes from Peers",
+                      "color": "green"
+                    },
+                    {
+                      "seriesName": "sum_BytesFromCDN",
+                      "label": "Bytes from CDN",
+                      "color": "orange"
+                    },
+                    {
+                      "seriesName": "sum_BytesFromCache",
+                      "label": "Bytes from Cache",
+                      "color": "greenDark"
+                    },
+                    {
+                      "seriesName": "sum_BytesFromIntPeers",
+                      "label": "Bytes from Internet Peers",
+                      "color": "red"
+                    },
+                    {
+                      "seriesName": "sum_BytesFromGroupPeers",
+                      "label": "Bytes from Group Peers",
+                      "color": "greenDarkDark"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "100",
+              "name": "DO Peering Count - By Content",
+              "styleSettings": {
+                "maxWidth": "100%"
+              }
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "DeliveryOptimizationPerfStats_CL\n| summarize sum(todouble(CdnConnections_s)), sum(todouble(GroupConnections_s)), sum(todouble(LinkLocalConnections_s)), sum(todouble(InternetConnections_s)), sum(todouble(CacheHostConnections_s)) by bin(TimeGenerated, 1h)",
+                "size": 1,
+                "title": "Connection Count by Source",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "table",
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "sum_CdnConnections_s",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "redDark"
+                      }
+                    },
+                    {
+                      "columnMatch": "sum_GroupConnections_s",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "green"
+                      }
+                    },
+                    {
+                      "columnMatch": "sum_LinkLocalConnections_s",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "blue"
+                      }
+                    },
+                    {
+                      "columnMatch": "sum_CacheHostConnections_s",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "greenDark"
+                      }
+                    }
+                  ],
+                  "sortBy": [
+                    {
+                      "itemKey": "$gen_bar_sum_GroupConnections_s_2",
+                      "sortOrder": 2
+                    }
+                  ],
+                  "labelSettings": [
+                    {
+                      "columnId": "TimeGenerated",
+                      "label": "Time"
+                    },
+                    {
+                      "columnId": "sum_CdnConnections_s",
+                      "label": "CDN"
+                    },
+                    {
+                      "columnId": "sum_GroupConnections_s",
+                      "label": "Group"
+                    },
+                    {
+                      "columnId": "sum_LinkLocalConnections_s",
+                      "label": "Peers"
+                    },
+                    {
+                      "columnId": "sum_InternetConnections_s",
+                      "label": "Internet"
+                    },
+                    {
+                      "columnId": "sum_CacheHostConnections_s",
+                      "label": "Connected Cache"
+                    }
+                  ]
+                },
+                "sortBy": [
+                  {
+                    "itemKey": "$gen_bar_sum_GroupConnections_s_2",
+                    "sortOrder": 2
+                  }
+                ],
+                "chartSettings": {
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "sum_CdnConnections_s",
+                      "color": "red"
+                    },
+                    {
+                      "seriesName": "sum_GroupConnections_s",
+                      "color": "green"
+                    },
+                    {
+                      "seriesName": "sum_LinkLocalConnections_s",
+                      "color": "greenDarkDark"
+                    },
+                    {
+                      "seriesName": "sum_CacheHostConnections_s",
+                      "color": "greenDark"
+                    }
+                  ]
+                }
+              },
+              "name": "Connection Count"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "UCDOStatus\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| project TimeGenerated, DeviceName, OSVersion, DownloadMode, ContentDownloadMode, PeeringStatus, ContentType, TotalTimeForDownload, TotalTransfers, PeerEligibleTransfers, NoPeersCount, PeersUnknownCount, PeersSuccessCount, BytesFromCDN, BytesFromPeers, BytesFromCache, BWOptPercent7Days, BWOptPercent28Days, AzureADDeviceId\r\n| order by TimeGenerated, DeviceName desc",
+                "size": 0,
+                "showAnalytics": true,
+                "title": "Peering State",
+                "timeContextFromParameter": "TimeRange",
+                "showExportToExcel": true,
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "table",
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "ContentDownloadMode",
+                      "formatter": 18,
+                      "formatOptions": {
+                        "thresholdsOptions": "icons",
+                        "thresholdsGrid": [
+                          {
+                            "operator": "==",
+                            "thresholdValue": "99",
+                            "representation": "2",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "==",
+                            "thresholdValue": "0",
+                            "representation": "2",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "Default",
+                            "thresholdValue": null,
+                            "representation": "success",
+                            "text": "{0}{1}"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "columnMatch": "PeeringStatus",
+                      "formatter": 18,
+                      "formatOptions": {
+                        "thresholdsOptions": "icons",
+                        "thresholdsGrid": [
+                          {
+                            "operator": "!=",
+                            "thresholdValue": "On",
+                            "representation": "2",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "Default",
+                            "thresholdValue": null,
+                            "representation": "success",
+                            "text": "{0}{1}"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "columnMatch": "BytesFromCDN",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "orange"
+                      }
+                    },
+                    {
+                      "columnMatch": "BytesFromPeers",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "green"
+                      }
+                    },
+                    {
+                      "columnMatch": "BytesFromCache",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "blue"
+                      }
+                    },
+                    {
+                      "columnMatch": "BWOptPercent7Days",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "green"
+                      }
+                    },
+                    {
+                      "columnMatch": "BWOptPercent28Days",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "green"
+                      }
+                    }
+                  ],
+                  "filter": true
+                }
+              },
+              "name": "Peering State"
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "ClientTraffic"
+        },
+        "name": "ClientTraffic"
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 12,
+              "content": {
+                "version": "NotebookGroup/1.0",
+                "groupType": "editable",
+                "items": [
+                  {
+                    "type": 1,
+                    "content": {
+                      "json": "# Update Sources - {TimeRange}\r\n-----\r\nThe below statistics show the sources for update content across all devices. Downloads from the CDN, peers and Connected Cache are determined by delivery optimization policies on your clients. ",
+                      "style": "info"
+                    },
+                    "name": "text - 0"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| summarize count(GlobalDeviceId) by DownloadMode, ContentType, TimeGenerated",
+                      "size": 1,
+                      "aggregation": 5,
+                      "showAnalytics": true,
+                      "title": "Delivery Optimization Mode - Over Time - {TimeRange}",
+                      "timeContextFromParameter": "TimeRange",
+                      "queryType": 0,
+                      "resourceType": "microsoft.operationalinsights/workspaces",
+                      "visualization": "areachart"
+                    },
+                    "name": "Delivery Optmisation Mode - Time Chart"
+                  },
+                  {
+                    "type": 12,
+                    "content": {
+                      "version": "NotebookGroup/1.0",
+                      "groupType": "editable",
+                      "items": [
+                        {
+                          "type": 3,
+                          "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| summarize sum(todouble(BytesFromCDN)), sum(todouble(BytesFromPeers)), sum(todouble(BytesFromCache)), sum(todouble(BytesFromGroupPeers)) by ContentType\r\n| extend TotalBytes = (sum_BytesFromCDN + sum_BytesFromPeers + sum_BytesFromCache + sum_BytesFromGroupPeers)\r\n",
+                            "size": 3,
+                            "showAnalytics": true,
+                            "title": "Content Types - {TimeRange}",
+                            "timeContextFromParameter": "TimeRange",
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "visualization": "piechart",
+                            "chartSettings": {
+                              "yAxis": [
+                                "TotalBytes"
+                              ],
+                              "showMetrics": false,
+                              "showLegend": true
+                            }
+                          },
+                          "customWidth": "50",
+                          "name": "Content Types - {TimeRange}"
+                        },
+                        {
+                          "type": 3,
+                          "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "UCDOStatus \r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| summarize count(GlobalDeviceId) by DownloadMode, DownloadModeSrc\r\n| project [\"Download Mode\"] = DownloadMode, [\"Download Source\"] = DownloadModeSrc, [\"Device Count\"] = count_GlobalDeviceId\r\n| order by [\"Device Count\"]",
+                            "size": 3,
+                            "showAnalytics": true,
+                            "title": "Delivery Optimization Mode",
+                            "timeContextFromParameter": "TimeRange",
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "visualization": "piechart"
+                          },
+                          "customWidth": "50",
+                          "name": "query - 10"
+                        },
+                        {
+                          "type": 3,
+                          "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| summarize sum(todouble(BytesFromCDN)), sum(todouble(BytesFromPeers)), sum(todouble(BytesFromCache)), sum(todouble(BytesFromGroupPeers)) by ContentType\r\n| extend [\"Total Bytes\"] = (sum_BytesFromCDN + sum_BytesFromPeers + sum_BytesFromCache + sum_BytesFromGroupPeers)\r\n| project [\"Content Type\"] = ContentType, [\"Bytes from CDN\"] = sum_BytesFromCDN, [\"Bytes from Peers\"] = sum_BytesFromPeers, [\"Bytes from Group Peers\"] = sum_BytesFromGroupPeers, [\"Bytes from Cache\"] = sum_BytesFromCache, [\"Total Bytes\"]\r\n\r\n",
+                            "size": 3,
+                            "showAnalytics": true,
+                            "title": "Content Break Down - Previous 30 Days",
+                            "timeContext": {
+                              "durationMs": 2592000000
+                            },
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "visualization": "table",
+                            "gridSettings": {
+                              "formatters": [
+                                {
+                                  "columnMatch": "Bytes from CDN",
+                                  "formatter": 4,
+                                  "formatOptions": {
+                                    "palette": "blue"
+                                  },
+                                  "numberFormat": {
+                                    "unit": 2,
+                                    "options": {
+                                      "style": "decimal",
+                                      "maximumFractionDigits": 2
+                                    }
+                                  }
+                                },
+                                {
+                                  "columnMatch": "Bytes from Peers",
+                                  "formatter": 4,
+                                  "formatOptions": {
+                                    "palette": "blue"
+                                  },
+                                  "numberFormat": {
+                                    "unit": 2,
+                                    "options": {
+                                      "style": "decimal",
+                                      "maximumFractionDigits": 2
+                                    }
+                                  }
+                                },
+                                {
+                                  "columnMatch": "Bytes from Group Peers",
+                                  "formatter": 4,
+                                  "formatOptions": {
+                                    "palette": "blue",
+                                    "customColumnWidthSetting": "100px"
+                                  },
+                                  "numberFormat": {
+                                    "unit": 2,
+                                    "options": {
+                                      "style": "decimal",
+                                      "maximumFractionDigits": 2
+                                    }
+                                  }
+                                },
+                                {
+                                  "columnMatch": "Bytes from Cache",
+                                  "formatter": 4,
+                                  "formatOptions": {
+                                    "palette": "blue"
+                                  },
+                                  "numberFormat": {
+                                    "unit": 2,
+                                    "options": {
+                                      "style": "decimal",
+                                      "maximumFractionDigits": 2
+                                    }
+                                  }
+                                },
+                                {
+                                  "columnMatch": "Total Bytes",
+                                  "formatter": 0,
+                                  "numberFormat": {
+                                    "unit": 2,
+                                    "options": {
+                                      "style": "decimal",
+                                      "maximumFractionDigits": 2
+                                    }
+                                  }
+                                },
+                                {
+                                  "columnMatch": "BWOptPercent28Days",
+                                  "formatter": 0,
+                                  "numberFormat": {
+                                    "unit": 1,
+                                    "options": {
+                                      "style": "decimal",
+                                      "useGrouping": false
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "sortBy": []
+                          },
+                          "name": "query - 1"
+                        },
+                        {
+                          "type": 3,
+                          "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| summarize sum(todouble(BytesFromCDN)), sum(todouble(BytesFromPeers)), sum(todouble(BytesFromCache)), sum(todouble(BytesFromGroupPeers)) by ContentType\r\n",
+                            "size": 2,
+                            "title": "Content Types - By Source",
+                            "timeContext": {
+                              "durationMs": 2592000000
+                            },
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "visualization": "unstackedbar",
+                            "tileSettings": {
+                              "showBorder": false,
+                              "titleContent": {
+                                "columnMatch": "ContentType",
+                                "formatter": 1
+                              },
+                              "leftContent": {
+                                "columnMatch": "BytesFromCDN",
+                                "formatter": 12,
+                                "formatOptions": {
+                                  "palette": "auto"
+                                },
+                                "numberFormat": {
+                                  "unit": 17,
+                                  "options": {
+                                    "maximumSignificantDigits": 3,
+                                    "maximumFractionDigits": 2
+                                  }
+                                }
+                              }
+                            },
+                            "graphSettings": {
+                              "type": 0,
+                              "topContent": {
+                                "columnMatch": "ContentType",
+                                "formatter": 1
+                              },
+                              "centerContent": {
+                                "columnMatch": "BytesFromCDN",
+                                "formatter": 1,
+                                "numberFormat": {
+                                  "unit": 17,
+                                  "options": {
+                                    "maximumSignificantDigits": 3,
+                                    "maximumFractionDigits": 2
+                                  }
+                                }
+                              }
+                            },
+                            "chartSettings": {
+                              "xAxis": "ContentType",
+                              "seriesLabelSettings": [
+                                {
+                                  "seriesName": "BytesFromCDN",
+                                  "label": "Bytes from CDN",
+                                  "color": "orange"
+                                },
+                                {
+                                  "seriesName": "BytesFromPeers",
+                                  "label": "Bytes from Peers",
+                                  "color": "green"
+                                },
+                                {
+                                  "seriesName": "BytesFromCache",
+                                  "label": "Bytes from Cache",
+                                  "color": "blue"
+                                }
+                              ]
+                            }
+                          },
+                          "name": "query - 5 - Copy"
+                        }
+                      ]
+                    },
+                    "customWidth": "60",
+                    "name": "DeliveryColumnLeft"
+                  },
+                  {
+                    "type": 12,
+                    "content": {
+                      "version": "NotebookGroup/1.0",
+                      "groupType": "editable",
+                      "items": [
+                        {
+                          "type": 3,
+                          "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "UCDOAggregatedStatus\r\n| summarize arg_max(TimeGenerated, *) by ContentType\r\n| extend BytesFromCDNGB = format_bytes(BytesFromCDN, 2)\r\n| extend BytesFromPeersGB = format_bytes(BytesFromPeers, 2)\r\n| sort by BytesFromCDN desc \r\n| extend CDNDistributionPercentage = todecimal(round((100 - BWOptPercent28Days),2))\r\n| extend PeerDistributionPercentage = todecimal(round((BWOptPercent28Days),2))\r\n| summarize [\"CDN Percentage\"] = avg(todecimal(round((CDNDistributionPercentage),1))), [\"Peer Percentage\"] = avg(todecimal(round((PeerDistributionPercentage),1)))",
+                            "size": 3,
+                            "title": "Delivery Optimization Split",
+                            "timeContext": {
+                              "durationMs": 259200000
+                            },
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "visualization": "table",
+                            "gridSettings": {
+                              "formatters": [
+                                {
+                                  "columnMatch": "CDN Percentage",
+                                  "formatter": 4,
+                                  "formatOptions": {
+                                    "min": 0,
+                                    "max": 100,
+                                    "palette": "red",
+                                    "compositeBarSettings": {
+                                      "labelText": "",
+                                      "columnSettings": []
+                                    },
+                                    "customColumnWidthSetting": "150px"
+                                  }
+                                },
+                                {
+                                  "columnMatch": "Peer Percentage",
+                                  "formatter": 4,
+                                  "formatOptions": {
+                                    "min": 0,
+                                    "max": 100,
+                                    "palette": "green",
+                                    "customColumnWidthSetting": "150px"
+                                  }
+                                }
+                              ]
+                            },
+                            "tileSettings": {
+                              "titleContent": {},
+                              "showBorder": false,
+                              "sortCriteriaField": "CDN Percentage",
+                              "size": "auto"
+                            }
+                          },
+                          "conditionalVisibility": {
+                            "parameterName": "s",
+                            "comparison": "isEqualTo",
+                            "value": "s"
+                          },
+                          "name": "query - 7"
+                        },
+                        {
+                          "type": 3,
+                          "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "UCDOStatus\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize sum(todouble(BytesFromCDN)), sum(todouble(BytesFromPeers)), sum(todouble(BytesFromCache)), sum(todouble(BytesFromGroupPeers))\r\n| extend Total = (sum_BytesFromCDN + sum_BytesFromPeers + sum_BytesFromCache + sum_BytesFromGroupPeers)\r\n| project pCDN = (todouble(sum_BytesFromCDN) * 100 / todouble(Total)), pPeers = (todouble(sum_BytesFromPeers) * 100 / todouble(Total)), pCache = (todouble(sum_BytesFromCache) * 100 / todouble(Total)), pGroupPeers = (todouble(sum_BytesFromGroupPeers) * 100 / todouble(Total))\r\n| evaluate narrow()\r\n| extend percent = '%'",
+                            "size": 3,
+                            "title": "Content Distribution",
+                            "timeContextFromParameter": "TimeRange",
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "visualization": "piechart",
+                            "chartSettings": {
+                              "yAxis": [
+                                "Value"
+                              ],
+                              "seriesLabelSettings": [
+                                {
+                                  "seriesName": "pCDN",
+                                  "label": "CDN Distribution",
+                                  "color": "orange"
+                                },
+                                {
+                                  "seriesName": "pPeers",
+                                  "label": "Peer Distribution",
+                                  "color": "green"
+                                },
+                                {
+                                  "seriesName": "pCache",
+                                  "label": "Cache Distribution",
+                                  "color": "blue"
+                                }
+                              ],
+                              "ySettings": {
+                                "numberFormatSettings": {
+                                  "unit": 1,
+                                  "options": {
+                                    "style": "decimal",
+                                    "useGrouping": true,
+                                    "maximumFractionDigits": 2,
+                                    "maximumSignificantDigits": 2
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "name": "query - 5"
+                        },
+                        {
+                          "type": 3,
+                          "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "UCDOStatus\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| extend TotalRawBytes = (BytesFromPeers + BytesFromCache + BytesFromGroupPeers)\r\n| summarize [\"Bandwidth Saving\"] = format_bytes(sum(TotalRawBytes),2)\r\n| extend Type = \"Bandwidth Savings\"",
+                            "size": 3,
+                            "timeContextFromParameter": "TimeRange",
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "visualization": "tiles",
+                            "tileSettings": {
+                              "titleContent": {
+                                "columnMatch": "Type",
+                                "formatter": 18,
+                                "formatOptions": {
+                                  "thresholdsOptions": "icons",
+                                  "thresholdsGrid": [
+                                    {
+                                      "operator": "Default",
+                                      "thresholdValue": null,
+                                      "representation": "success",
+                                      "text": "{0}{1}"
+                                    }
+                                  ]
+                                },
+                                "numberFormat": {
+                                  "unit": 0,
+                                  "options": {
+                                    "style": "decimal"
+                                  }
+                                }
+                              },
+                              "leftContent": {
+                                "columnMatch": "Bandwidth Saving",
+                                "numberFormat": {
+                                  "unit": 17,
+                                  "options": {
+                                    "style": "decimal"
+                                  }
+                                }
+                              },
+                              "showBorder": true,
+                              "sortCriteriaField": "Bandwidth Saving",
+                              "size": "auto"
+                            }
+                          },
+                          "name": "Bandwidth Savings"
+                        },
+                        {
+                          "type": 3,
+                          "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "UCDOStatus\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize sum(todouble(BytesFromCDN)), sum(todouble(BytesFromPeers)), sum(todouble(BytesFromCache)), sum(todouble(BytesFromGroupPeers)) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, sum_BytesFromCache, sum_BytesFromGroupPeers, TimeGenerated\r\n\r\n",
+                            "size": 1,
+                            "title": "Update Sources Trend {TimeRange}",
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "visualization": "areachart",
+                            "tileSettings": {
+                              "showBorder": false
+                            },
+                            "chartSettings": {
+                              "seriesLabelSettings": [
+                                {
+                                  "seriesName": "sum_BytesFromCDN",
+                                  "label": "CDN Delivered",
+                                  "color": "orange"
+                                },
+                                {
+                                  "seriesName": "sum_BytesFromPeers",
+                                  "label": "Peer Delivered",
+                                  "color": "green"
+                                },
+                                {
+                                  "seriesName": "sum_BytesFromCache",
+                                  "label": "Cache Delivered",
+                                  "color": "blue"
+                                }
+                              ]
+                            }
+                          },
+                          "name": "Update Sources Trend {TimeRange}"
+                        },
+                        {
+                          "type": 3,
+                          "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "UCDOStatus\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize sum(todouble(BytesFromCDN)), sum(todouble(BytesFromPeers)), sum(todouble(BytesFromCache)), sum(todouble(BytesFromGroupPeers)) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, sum_BytesFromCache, sum_BytesFromGroupPeers, TimeGenerated",
+                            "size": 1,
+                            "title": "Update Sources Trend Last 7 days",
+                            "timeContext": {
+                              "durationMs": 604800000
+                            },
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "visualization": "areachart",
+                            "chartSettings": {
+                              "seriesLabelSettings": [
+                                {
+                                  "seriesName": "sum_BytesFromCDN",
+                                  "label": "CDN Delivered",
+                                  "color": "orange"
+                                },
+                                {
+                                  "seriesName": "sum_BytesFromPeers",
+                                  "label": "Peer Delivered",
+                                  "color": "green"
+                                },
+                                {
+                                  "seriesName": "sum_BytesFromCache",
+                                  "label": "Cache Delivered",
+                                  "color": "blue"
+                                }
+                              ]
+                            }
+                          },
+                          "name": "Update Sources Trend Last 7 days"
+                        },
+                        {
+                          "type": 3,
+                          "content": {
+                            "version": "KqlItem/1.0",
+                            "query": "UCDOStatus\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize sum(todouble(BytesFromCDN)), sum(todouble(BytesFromPeers)), sum(todouble(BytesFromCache)), sum(todouble(BytesFromGroupPeers)) by TimeGenerated\r\n| project sum_BytesFromCDN, sum_BytesFromPeers, sum_BytesFromCache, sum_BytesFromGroupPeers, TimeGenerated",
+                            "size": 1,
+                            "title": "Update Sources Trend Last 48 hours",
+                            "timeContext": {
+                              "durationMs": 259200000
+                            },
+                            "queryType": 0,
+                            "resourceType": "microsoft.operationalinsights/workspaces",
+                            "visualization": "areachart",
+                            "chartSettings": {
+                              "seriesLabelSettings": [
+                                {
+                                  "seriesName": "sum_BytesFromCDN",
+                                  "label": "CDN Delivered",
+                                  "color": "orange"
+                                },
+                                {
+                                  "seriesName": "sum_BytesFromPeers",
+                                  "label": "Peer Delivered",
+                                  "color": "green"
+                                },
+                                {
+                                  "seriesName": "sum_BytesFromCache",
+                                  "label": "Cache Delivered",
+                                  "color": "blue"
+                                }
+                              ]
+                            }
+                          },
+                          "name": "Update Sources Trend Last 48 hours"
+                        }
+                      ]
+                    },
+                    "customWidth": "40",
+                    "name": "Bandwidth Saving"
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "UCDOStatus\r\n| where ContentType in ({ContentTypes}) and DownloadModeSrc in ({OtherContentSources})\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId, ContentType, bin(TimeGenerated, 1d)\r\n| summarize sum(todouble(BytesFromCDN)), sum(todouble(BytesFromPeers)), sum(todouble(BytesFromCache)), sum(todouble(BytesFromGroupPeers)) by ContentType, bin(TimeGenerated,1d)\r\n",
+                      "size": 0,
+                      "title": "DO - Category Trend Figures",
+                      "timeContext": {
+                        "durationMs": 2592000000
+                      },
+                      "queryType": 0,
+                      "resourceType": "microsoft.operationalinsights/workspaces",
+                      "visualization": "table",
+                      "gridSettings": {
+                        "hierarchySettings": {
+                          "treeType": 1,
+                          "groupBy": [
+                            "TimeGenerated"
+                          ],
+                          "expandTopLevel": true
+                        }
+                      },
+                      "tileSettings": {
+                        "showBorder": false,
+                        "titleContent": {
+                          "columnMatch": "ContentType",
+                          "formatter": 1
+                        },
+                        "leftContent": {
+                          "columnMatch": "BytesFromCDN",
+                          "formatter": 12,
+                          "formatOptions": {
+                            "palette": "auto"
+                          },
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "maximumSignificantDigits": 3,
+                              "maximumFractionDigits": 2
+                            }
+                          }
+                        }
+                      },
+                      "graphSettings": {
+                        "type": 0,
+                        "topContent": {
+                          "columnMatch": "ContentType",
+                          "formatter": 1
+                        },
+                        "centerContent": {
+                          "columnMatch": "BytesFromCDN",
+                          "formatter": 1,
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "maximumSignificantDigits": 3,
+                              "maximumFractionDigits": 2
+                            }
+                          }
+                        }
+                      },
+                      "chartSettings": {
+                        "xAxis": "TimeGenerated",
+                        "yAxis": [
+                          "ContentType"
+                        ],
+                        "group": null,
+                        "createOtherGroup": 0
+                      }
+                    },
+                    "name": "DO - Category Trend Figures"
+                  }
+                ]
+              },
+              "name": "AggregatedTraffic"
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "AggregatedTraffic"
+        },
+        "name": "AggregatedTraffic"
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 1,
+              "content": {
+                "json": "## Client Device Overhead\n\nBelow are performance based metrics showing the impact on the end-user device while surving delivery optimization requests",
+                "style": "info"
+              },
+              "name": "text - 7"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "DeliveryOptimizationPerfStats_CL\n| summarize avg(todouble(CpuUsagePct_s)) by bin(TimeGenerated, 1h)",
+                "size": 1,
+                "aggregation": 3,
+                "title": "Average CPU Load",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "areachart",
+                "chartSettings": {
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "avg_CpuUsagePct_s",
+                      "color": "red"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "50",
+              "name": "Average CPU Load",
+              "styleSettings": {
+                "maxWidth": "50%"
+              }
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "DeliveryOptimizationPerfStats_CL\n| summarize avg(toint(MemUsageKB_s)) by bin(TimeGenerated, 1h)\n| extend avg_MemUsageMB = todouble(avg_MemUsageKB_s)/1024\n| project TimeGenerated, avg_MemUsageMB",
+                "size": 1,
+                "aggregation": 3,
+                "title": "Average Memory Load",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "areachart",
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "avg_MemUsageMB",
+                      "formatter": 0,
+                      "numberFormat": {
+                        "unit": 17,
+                        "options": {
+                          "style": "decimal",
+                          "useGrouping": true,
+                          "minimumFractionDigits": 4
+                        }
+                      }
+                    }
+                  ]
+                },
+                "sortBy": [],
+                "chartSettings": {
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "avg_MemUsageMB",
+                      "color": "green"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "50",
+              "name": "Average Memory Load",
+              "styleSettings": {
+                "maxWidth": "50%"
+              }
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "ClientOverhead"
+        },
+        "name": "ClientOverhead"
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 1,
+              "content": {
+                "json": "## Group ID Configuration\r\n\r\nGroup ID's are used to group clients into groups which can share content with each other. The below graphs show the counts and trends over time.",
+                "style": "info"
+              },
+              "name": "text - 0"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "UCDOStatus\r\n| summarize arg_max(TimeGenerated, *) by GlobalDeviceId\r\n| summarize count() by GroupID\r\n| order by count_ desc",
+                "size": 3,
+                "title": "Group ID Assignments",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "piechart",
+                "chartSettings": {
+                  "createOtherGroup": 10,
+                  "showMetrics": false,
+                  "showLegend": true
+                }
+              },
+              "customWidth": "33",
+              "name": "Group ID Assignments",
+              "styleSettings": {
+                "maxWidth": "33%"
+              }
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "UCDOStatus\r\n| where isempty(GroupID)\r\n| summarize count() by GroupID, bin(TimeGenerated,1d)\r\n| order by count_ desc ",
+                "size": 0,
+                "title": "Blank Group ID Tracking",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "timechart"
+              },
+              "customWidth": "66",
+              "name": "Blank Group ID Tracking",
+              "styleSettings": {
+                "maxWidth": "66%"
+              }
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "UCDOStatus\r\n| where isnotempty(GroupID)\r\n| summarize count() by GroupID, bin(TimeGenerated,1d)\r\n| order by count_ desc ",
+                "size": 1,
+                "title": "Group ID Tracking ",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "visualization": "timechart"
+              },
+              "name": "Group ID Tracking "
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "GroupIDs"
+        },
+        "name": "GroupIDReports"
+      }
+    ],
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }
